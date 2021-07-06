@@ -5,7 +5,7 @@ pragma solidity ^0.8.0;
 /**
  * EIP-2981
  */
-interface EIP2981 {
+interface IEIP2981 {
     /**
      * bytes4(keccak256("royaltyInfo(uint256,uint256)")) == 0x2a55205a
      *

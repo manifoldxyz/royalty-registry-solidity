@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.0;
 
-interface Foundation {
+interface IFoundation {
     /*
      *  bytes4(keccak256('getFees(uint256)')) == 0xd5a06d4c
      *

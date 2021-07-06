@@ -36,10 +36,10 @@ contract MockRoyalty is Ownable {
 /**
  * Implements Manifold interface
  */
-contract MockManifold is Manifold, MockRoyalty, ERC165 {
+contract MockManifold is IManifold, MockRoyalty, ERC165 {
     
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165) returns (bool) {
-        return interfaceId == type(Manifold).interfaceId || super.supportsInterface(interfaceId);
+        return interfaceId == type(IManifold).interfaceId || super.supportsInterface(interfaceId);
     }
 
     function getRoyalties(uint256 tokenId) public override view returns (address payable[] memory, uint256[] memory) {
@@ -51,10 +51,10 @@ contract MockManifold is Manifold, MockRoyalty, ERC165 {
 /**
  * Implements Foundation interface
  */
-contract MockFoundation is Foundation, MockRoyalty, ERC165 {
+contract MockFoundation is IFoundation, MockRoyalty, ERC165 {
     
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165) returns (bool) {
-        return interfaceId == type(Foundation).interfaceId || super.supportsInterface(interfaceId);
+        return interfaceId == type(IFoundation).interfaceId || super.supportsInterface(interfaceId);
     }
 
     function getFees(uint256 tokenId) public override view returns (address payable[] memory, uint256[] memory) {
@@ -66,10 +66,10 @@ contract MockFoundation is Foundation, MockRoyalty, ERC165 {
 /**
  * Implements RaribleV1 interface
  */
-contract MockRaribleV1 is RaribleV1, MockRoyalty, ERC165 {
+contract MockRaribleV1 is IRaribleV1, MockRoyalty, ERC165 {
     
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165) returns (bool) {
-        return interfaceId == type(RaribleV1).interfaceId || super.supportsInterface(interfaceId);
+        return interfaceId == type(IRaribleV1).interfaceId || super.supportsInterface(interfaceId);
     }
 
     function getFeeBps(uint256 tokenId) public override view returns (uint[] memory) {
@@ -85,10 +85,10 @@ contract MockRaribleV1 is RaribleV1, MockRoyalty, ERC165 {
 /**
  * Implements EIP2981 interface
  */
-contract MockEIP2981 is EIP2981, MockRoyalty, ERC165 {
+contract MockEIP2981 is IEIP2981, MockRoyalty, ERC165 {
     
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165) returns (bool) {
-        return interfaceId == type(EIP2981).interfaceId || super.supportsInterface(interfaceId);
+        return interfaceId == type(IEIP2981).interfaceId || super.supportsInterface(interfaceId);
     }
 
     function royaltyInfo(uint256 tokenId, uint256 value) public override view returns (address, uint256) {
