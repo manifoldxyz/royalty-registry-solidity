@@ -16,3 +16,6 @@ The royalty registry was designed with the following goals
 The common interface attempts to unify the various royalty specifications currently in existence.
 
 As new standards are adopted, they can be added to the registry.  If new standards require a more complex output, the royalty registry can be upgraded.
+
+Overrides are emitted as events so anyone can re-create the registry.
+

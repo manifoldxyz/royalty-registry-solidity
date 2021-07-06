@@ -14,7 +14,7 @@ interface IRegistry is IERC165 {
      event RoyaltyOverride(address owner, address tokenAddress, address royaltyAddress);
 
     /**
-     * Get the royalty for a given token (address, id) and value amount
+     * Get the royalty for a given token (address, id) and value amount.  Never cache the result, as the recipients and values can change.
      * 
      * @param tokenAddress - The address of the token
      * @param tokenId      - The id of the token
