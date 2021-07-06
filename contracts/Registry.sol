@@ -9,11 +9,11 @@ import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
-import "./specs/Manifold.sol";
-import "./specs/Rarible.sol";
-import "./specs/Foundation.sol";
-import "./specs/EIP2981.sol";
-import "./specs/ZoraOverride.sol";
+import "./specs/IManifold.sol";
+import "./specs/IRarible.sol";
+import "./specs/IFoundation.sol";
+import "./specs/IEIP2981.sol";
+import "./specs/IZoraOverride.sol";
 import "./IRegistry.sol";
 
 /**

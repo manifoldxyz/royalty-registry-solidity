@@ -5,7 +5,7 @@ pragma solidity ^0.8.0;
 /// @author: manifold.xyz
 
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
-import "../specs/ZoraOverride.sol";
+import "../specs/IZoraOverride.sol";
 
 /**
  * @dev Implementation of Zora override

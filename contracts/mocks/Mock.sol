@@ -7,10 +7,10 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
-import "../specs/Manifold.sol";
-import "../specs/Rarible.sol";
-import "../specs/Foundation.sol";
-import "../specs/EIP2981.sol";
+import "../specs/IManifold.sol";
+import "../specs/IRarible.sol";
+import "../specs/IFoundation.sol";
+import "../specs/IEIP2981.sol";
 
 /**
  * Does not implement any interface
