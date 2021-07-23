@@ -6,6 +6,7 @@ const MockContract = artifacts.require("MockContract");
 const MockManifold = artifacts.require("MockManifold");
 const MockFoundation = artifacts.require("MockFoundation");
 const MockRaribleV1 = artifacts.require("MockRaribleV1");
+const MockRaribleV2 = artifacts.require("MockRaribleV2");
 const MockEIP2981 = artifacts.require("MockEIP2981");
 
 contract('Registry', function ([...accounts]) {
@@ -16,6 +17,7 @@ contract('Registry', function ([...accounts]) {
     another3,
     another4,
     another5,
+    another6,
   ] = accounts;
 
   describe('Registry', function() {
@@ -24,6 +26,7 @@ contract('Registry', function ([...accounts]) {
     var mockManifold;
     var mockFoundation;
     var mockRaribleV1;
+    var mockRaribleV2;
     var mockEIP2981;
 
     beforeEach(async function () {
@@ -32,14 +35,15 @@ contract('Registry', function ([...accounts]) {
       mockManifold = await MockManifold.new({from: another2});
       mockFoundation = await MockFoundation.new({from: another3});
       mockRaribleV1 = await MockRaribleV1.new({from: another4});
-      mockEIP2981 = await MockEIP2981.new({from: another5});
+      mockRaribleV2 = await MockRaribleV2.new({from: another5});
+      mockEIP2981 = await MockEIP2981.new({from: another6});
     });
 
     it('override test', async function () {
       await truffleAssert.reverts(registry.overrideAddress(owner, mockContract.address), "Invalid input");
       await truffleAssert.reverts(registry.overrideAddress(mockContract.address, owner), "Invalid input");
-      await truffleAssert.reverts(registry.overrideAddress(mockContract.address, mockManifold.address, {from: another5}));
-      await truffleAssert.reverts(registry.overrideAddress(mockManifold.address, mockManifold.address, {from: another5}), "Must be contract owner to override");
+      await truffleAssert.reverts(registry.overrideAddress(mockContract.address, mockManifold.address, {from: another6}));
+      await truffleAssert.reverts(registry.overrideAddress(mockManifold.address, mockManifold.address, {from: another6}), "Must be contract owner to override");
       await registry.overrideAddress(mockContract.address, mockManifold.address, {from: owner});
       await registry.overrideAddress(mockManifold.address, mockFoundation.address, {from: another2});
     });
@@ -49,18 +53,21 @@ contract('Registry', function ([...accounts]) {
       var manifoldTokenId = 2;
       var foundationTokenId = 3;
       var raribleV1TokenId = 4;
-      var eip2981TokenId = 5;
+      var raribleV2TokenId = 5;
+      var eip2981TokenId = 6;
 
       var unallocatedBps = 100;
       var manifoldBps = 200;
       var foundationBps = 300;
       var raribleV1Bps = 400;
-      var eip2981Bps = 500;
+      var raribleV2Bps = 500;
+      var eip2981Bps = 600;
 
       await mockManifold.setRoyalties(manifoldTokenId, [another2], [manifoldBps]);
       await mockFoundation.setRoyalties(foundationTokenId, [another3], [foundationBps]);
       await mockRaribleV1.setRoyalties(raribleV1TokenId, [another4], [raribleV1Bps]);
-      await mockEIP2981.setRoyalties(eip2981TokenId, [another5], [eip2981Bps]);
+      await mockRaribleV2.setRoyalties(raribleV2TokenId, [another5], [raribleV2Bps]);
+      await mockEIP2981.setRoyalties(eip2981TokenId, [another6], [eip2981Bps]);
 
       var value = 10000;
       var result;
@@ -77,8 +84,12 @@ contract('Registry', function ([...accounts]) {
       assert.equal(result[0][0], another4);
       assert.deepEqual(result[1][0], web3.utils.toBN(value*raribleV1Bps/10000));
         
-      result = await registry.getRoyalty(mockEIP2981.address, eip2981TokenId, value);
+      result = await registry.getRoyalty(mockRaribleV2.address, raribleV2TokenId, value);
       assert.equal(result[0][0], another5);
+      assert.deepEqual(result[1][0], web3.utils.toBN(value*raribleV2Bps/10000));
+        
+      result = await registry.getRoyalty(mockEIP2981.address, eip2981TokenId, value);
+      assert.equal(result[0][0], another6);
       assert.deepEqual(result[1][0], web3.utils.toBN(value*eip2981Bps/10000));
 
       result = await registry.getRoyalty(mockContract.address, unallocatedTokenId, value);

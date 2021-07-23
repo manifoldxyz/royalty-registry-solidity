@@ -83,6 +83,25 @@ contract MockRaribleV1 is IRaribleV1, MockRoyalty, ERC165 {
 }
 
 /**
+ * Implements RaribleV2 interface
+ */
+contract MockRaribleV2 is IRaribleV2, MockRoyalty, ERC165 {
+    
+    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165) returns (bool) {
+        return interfaceId == type(IRaribleV2).interfaceId || super.supportsInterface(interfaceId);
+    }
+
+    function getRaribleV2Royalties(uint256 tokenId) public override view returns (IRaribleV2.Part[] memory royalties) {
+        royalties = new IRaribleV2.Part[](_receivers[tokenId].length);
+        for (uint i = 0; i < _receivers[tokenId].length; i++) {
+            royalties[i] = Part(_receivers[tokenId][i], uint96(_bps[tokenId][i]));
+        }
+        return royalties;
+    }   
+
+}
+
+/**
  * Implements EIP2981 interface
  */
 contract MockEIP2981 is IEIP2981, MockRoyalty, ERC165 {

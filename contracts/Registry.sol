@@ -61,6 +61,16 @@ contract Registry is ERC165, OwnableUpgradeable, IRegistry {
             (recipients, bps) = IManifold(tokenAddress).getRoyalties(tokenId);
             require(recipients.length == bps.length);
             return (recipients, _computeAmounts(value, bps));
+        } else if (ERC165Checker.supportsInterface(tokenAddress, type(IRaribleV2).interfaceId)) {
+            // Supports rarible v2 interface. Compute amounts
+            IRaribleV2.Part[] memory royalties = IRaribleV2(tokenAddress).getRaribleV2Royalties(tokenId);
+            recipients = new address payable[](royalties.length);
+            amounts = new uint256[](royalties.length);
+            for (uint i = 0; i < royalties.length; i++) {
+                recipients[i] = royalties[i].account;
+                amounts[i] = value*royalties[i].value/10000;
+            }
+            return (recipients, amounts);
         } else if (ERC165Checker.supportsInterface(tokenAddress, type(IRaribleV1).interfaceId)) {
             // Supports rarible v1 interface. Compute amounts
             recipients = IRaribleV1(tokenAddress).getFeeRecipients(tokenId);
