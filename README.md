@@ -19,3 +19,24 @@ As new standards are adopted, they can be added to the registry.  If new standar
 
 Overrides are emitted as events so anyone can re-create the registry.
 
+## Methods
+
+```
+function getRoyalty(address tokenAddress, uint256 tokenId, uint256 value) public view override returns(address payable[] memory recipients, uint256[] memory amounts)
+```
+Get the royalties for a given token and sale amount
+
+- Input parameter: *tokenAddress* - address of token
+- Input parameter: *tokenId*      - id of token
+- Input parameter: *value*        - sale value of token
+
+Returns two arrays, first is the list of royalty recipients, second is the amounts for each recipient.
+
+```
+function overrideAddress(address tokenAddress, address royaltyAddress) public override
+```
+Override where to get royalty information from for a given token contract.  Only callable by the owner of the token contract (relies on @openzeppelin's Ownable implementation) or the owner of the Royalty Registry (i.e. DAO governance access control).  This allows legacy contracts to set royalties.
+
+- Input parameter: *tokenAddress*   - address of token contract
+- Input parameter: *royaltyAddress* - new contract location to lookup royalties
+
