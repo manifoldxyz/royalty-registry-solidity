@@ -12,6 +12,8 @@ import "../specs/IRarible.sol";
 import "../specs/IFoundation.sol";
 import "../specs/IEIP2981.sol";
 
+import "../IRoyaltyEngineV1.sol";
+
 /**
  * Does not implement any interface
  */
@@ -113,5 +115,24 @@ contract MockEIP2981 is IEIP2981, MockRoyalty, ERC165 {
     function royaltyInfo(uint256 tokenId, uint256 value) public override view returns (address, uint256) {
         if (_receivers[tokenId].length == 0) return (address(0), 0);
         return (_receivers[tokenId][0], _bps[tokenId][0]*value/10000);
+    }
+}
+
+
+/**
+ * Simulate payment
+ */
+contract MockRoyaltyPayer {
+    function deposit() public payable {
+        
+    }
+
+    function payout(address royaltyEngine, address tokenAddress, uint256 tokenId, uint256 saleAmount) public {
+        address payable[] memory recipients;
+        uint256[] memory amounts;
+        (recipients, amounts) = IRoyaltyEngineV1(royaltyEngine).getRoyalty(tokenAddress, tokenId, saleAmount);
+        for (uint i = 0; i < recipients.length; i++) {
+            recipients[i].transfer(amounts[i]);
+        }
     }
 }

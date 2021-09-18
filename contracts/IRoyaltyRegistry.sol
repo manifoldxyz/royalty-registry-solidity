@@ -9,20 +9,9 @@ import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 /**
  * @dev Royalty registry interface
  */
-interface IRegistry is IERC165 {
+interface IRoyaltyRegistry is IERC165 {
 
      event RoyaltyOverride(address owner, address tokenAddress, address royaltyAddress);
-
-    /**
-     * Get the royalty for a given token (address, id) and value amount.  Never cache the result, as the recipients and values can change.
-     * 
-     * @param tokenAddress - The address of the token
-     * @param tokenId      - The id of the token
-     * @param value        - The value you wish to get the royalty of
-     *
-     * returns Two arrays of equal length, royalty recipients and the corresponding amount each recipient should get
-     */
-    function getRoyalty(address tokenAddress, uint256 tokenId, uint256 value) external view returns(address payable[] memory recipients, uint256[] memory amounts);
 
     /**
      * Override the location of where to look up royalty information for a given token contract.
@@ -32,4 +21,11 @@ interface IRegistry is IERC165 {
      * @param royaltyAddress  - The royalty override address
      */
     function overrideAddress(address tokenAddress, address royaltyAddress) external;
+
+    /**
+     * Returns royalty override address (if it exists).  Defaults to 0x0
+     *
+     * @param tokenAddress    - The token address you wish to override
+     */
+    function getOverride(address tokenAddress) external view returns(address);
 }
