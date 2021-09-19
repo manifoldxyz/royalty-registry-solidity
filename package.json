@@ -20,11 +20,11 @@
   },
   "homepage": "https://github.com/manifoldxyz/royalty-registry-solidity#readme",
   "dependencies": {
-    "@openzeppelin/contracts": "^4.2.0",
-    "@openzeppelin/contracts-upgradeable": "^4.3.1"
+    "@openzeppelin/contracts": "^4.3.2",
+    "@openzeppelin/contracts-upgradeable": "^4.3.2"
   },
   "devDependencies": {
-    "@openzeppelin/truffle-upgrades": "^1.8.0",
+    "@openzeppelin/truffle-upgrades": "^1.9.1",
     "truffle-assertions": "^0.9.2"
   }
 }
