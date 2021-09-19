@@ -46,12 +46,12 @@ contract('Registry', function ([...accounts]) {
     });
 
     it('override test', async function () {
-      await truffleAssert.reverts(registry.overrideAddress(owner, mockContract.address), "Invalid input");
-      await truffleAssert.reverts(registry.overrideAddress(mockContract.address, owner), "Invalid input");
-      await truffleAssert.reverts(registry.overrideAddress(mockContract.address, mockManifold.address, {from: another6}));
-      await truffleAssert.reverts(registry.overrideAddress(mockManifold.address, mockManifold.address, {from: another6}), "Must be contract owner to override");
-      await registry.overrideAddress(mockContract.address, mockManifold.address, {from: owner});
-      await registry.overrideAddress(mockManifold.address, mockFoundation.address, {from: another2});
+      await truffleAssert.reverts(registry.setRoyaltyLookupAddress(owner, mockContract.address), "Invalid input");
+      await truffleAssert.reverts(registry.setRoyaltyLookupAddress(mockContract.address, owner), "Invalid input");
+      await truffleAssert.reverts(registry.setRoyaltyLookupAddress(mockContract.address, mockManifold.address, {from: another6}));
+      await truffleAssert.reverts(registry.setRoyaltyLookupAddress(mockManifold.address, mockManifold.address, {from: another6}), "Permission denied");
+      await registry.setRoyaltyLookupAddress(mockContract.address, mockManifold.address, {from: owner});
+      await registry.setRoyaltyLookupAddress(mockManifold.address, mockFoundation.address, {from: another2});
     });
 
     it('getRoyalty test', async function () {
@@ -105,7 +105,7 @@ contract('Registry', function ([...accounts]) {
       assert.equal(result[1].length, 0);
 
       // Override royalty logic
-      await registry.overrideAddress(mockContract.address, mockManifold.address, {from: owner});
+      await registry.setRoyaltyLookupAddress(mockContract.address, mockManifold.address, {from: owner});
       result = await engine.getRoyalty(mockContract.address, unallocatedTokenId, value);
       assert.equal(result[0].length, 0);
       assert.equal(result[1].length, 0);

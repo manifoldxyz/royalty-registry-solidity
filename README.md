@@ -24,7 +24,7 @@ Overrides are emitted as events so that any other systems that want to cache thi
 #### Methods
 
 ```
-function overrideAddress(address tokenAddress, address royaltyAddress) public
+function setRoyaltyLookupAddress(address tokenAddress, address royaltyLookupAddress) public
 ```
 Override where to get royalty information from for a given token contract.  Only callable by the owner of the token contract (relies on @openzeppelin's Ownable implementation) or the owner of the Royalty Registry (i.e. DAO governance access control).  This allows legacy contracts to set royalties.
 
@@ -32,7 +32,7 @@ Override where to get royalty information from for a given token contract.  Only
 - Input parameter: *royaltyAddress* - new contract location to lookup royalties
 
 ```
-function getRoyaltyAddress(address tokenAddress) public view
+function getRoyaltyLookupAddress(address tokenAddress) public view
 ```
 Returns the address that should be used to lookup royalties.  Defaults to return the tokenAddress unless an override is set.
 

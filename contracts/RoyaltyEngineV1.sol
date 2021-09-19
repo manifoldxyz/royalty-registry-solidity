@@ -42,7 +42,7 @@ contract RoyaltyEngineV1 is ERC165, OwnableUpgradeable, IRoyaltyEngineV1 {
      * @dev See {IRegistry-getRoyalty}.
      */
     function getRoyalty(address tokenAddress, uint256 tokenId, uint256 value) public view override returns(address payable[] memory recipients, uint256[] memory amounts) {
-        address royaltyAddress = IRoyaltyRegistry(royaltyRegistry).getRoyaltyAddress(tokenAddress);
+        address royaltyAddress = IRoyaltyRegistry(royaltyRegistry).getRoyaltyLookupAddress(tokenAddress);
 
         if (ERC165Checker.supportsInterface(royaltyAddress, type(IManifold).interfaceId)) {
             // Supports manifold interface.  Compute amounts

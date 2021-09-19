@@ -32,19 +32,29 @@ contract RoyaltyRegistry is ERC165, OwnableUpgradeable, IRoyaltyRegistry {
     }
 
     /**
-     * @dev See {IRegistry-overrideAddress}.
+     * @dev See {IRegistry-setRoyaltyLookupAddress}.
      */
-    function overrideAddress(address tokenAddress, address royaltyAddress) public override {
-        require(tokenAddress.isContract() && (royaltyAddress.isContract() || royaltyAddress == address(0)), "Invalid input");
-        require(owner() == _msgSender() || OwnableUpgradeable(tokenAddress).owner() == _msgSender(), "Must be contract owner to override");
-        _overrides[tokenAddress] = royaltyAddress;
-        emit RoyaltyOverride(_msgSender(), tokenAddress, royaltyAddress);
+    function setRoyaltyLookupAddress(address tokenAddress, address royaltyLookupAddress) public override {
+        require(tokenAddress.isContract() && (royaltyLookupAddress.isContract() || royaltyLookupAddress == address(0)), "Invalid input");
+        require(_overrideAllowed(tokenAddress), "Permission denied");
+        _overrides[tokenAddress] = royaltyLookupAddress;
+        emit RoyaltyOverride(_msgSender(), tokenAddress, royaltyLookupAddress);
     }
 
     /**
-     * @dev See {IRegistry-getRoyaltyAddress}.
+     * Function to check whether or not the message sender is allowed to override the royalty lookup location of the given token address
      */
-    function getRoyaltyAddress(address tokenAddress) external view override returns(address) {
+    function _overrideAllowed(address tokenAddress) private view returns(bool) {
+        if (owner() == _msgSender()) return true;
+        if (OwnableUpgradeable(tokenAddress).owner() == _msgSender()) return true;
+        // TODO: Add additional override rules
+        return false;
+    }
+
+    /**
+     * @dev See {IRegistry-getRoyaltyLookupAddress}.
+     */
+    function getRoyaltyLookupAddress(address tokenAddress) external view override returns(address) {
         address override_ = _overrides[tokenAddress];
         if (override_ != address(0)) return override_;
         return tokenAddress;
