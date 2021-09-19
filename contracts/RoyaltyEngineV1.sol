@@ -42,21 +42,17 @@ contract RoyaltyEngineV1 is ERC165, OwnableUpgradeable, IRoyaltyEngineV1 {
      * @dev See {IRegistry-getRoyalty}.
      */
     function getRoyalty(address tokenAddress, uint256 tokenId, uint256 value) public view override returns(address payable[] memory recipients, uint256[] memory amounts) {
-        address originalTokenAddress = tokenAddress;
-        address overrideAddress = IRoyaltyRegistry(royaltyRegistry).getOverride(tokenAddress);
+        address royaltyAddress = IRoyaltyRegistry(royaltyRegistry).getRoyaltyAddress(tokenAddress);
 
-        // Use override if configured
-        if (overrideAddress != address(0)) tokenAddress = overrideAddress;
-
-        if (ERC165Checker.supportsInterface(tokenAddress, type(IManifold).interfaceId)) {
+        if (ERC165Checker.supportsInterface(royaltyAddress, type(IManifold).interfaceId)) {
             // Supports manifold interface.  Compute amounts
             uint256[] memory bps;
-            (recipients, bps) = IManifold(tokenAddress).getRoyalties(tokenId);
+            (recipients, bps) = IManifold(royaltyAddress).getRoyalties(tokenId);
             require(recipients.length == bps.length);
             return (recipients, _computeAmounts(value, bps));
-        } else if (ERC165Checker.supportsInterface(tokenAddress, type(IRaribleV2).interfaceId)) {
+        } else if (ERC165Checker.supportsInterface(royaltyAddress, type(IRaribleV2).interfaceId)) {
             // Supports rarible v2 interface. Compute amounts
-            IRaribleV2.Part[] memory royalties = IRaribleV2(tokenAddress).getRaribleV2Royalties(tokenId);
+            IRaribleV2.Part[] memory royalties = IRaribleV2(royaltyAddress).getRaribleV2Royalties(tokenId);
             recipients = new address payable[](royalties.length);
             amounts = new uint256[](royalties.length);
             for (uint i = 0; i < royalties.length; i++) {
@@ -64,29 +60,29 @@ contract RoyaltyEngineV1 is ERC165, OwnableUpgradeable, IRoyaltyEngineV1 {
                 amounts[i] = value*royalties[i].value/10000;
             }
             return (recipients, amounts);
-        } else if (ERC165Checker.supportsInterface(tokenAddress, type(IRaribleV1).interfaceId)) {
+        } else if (ERC165Checker.supportsInterface(royaltyAddress, type(IRaribleV1).interfaceId)) {
             // Supports rarible v1 interface. Compute amounts
-            recipients = IRaribleV1(tokenAddress).getFeeRecipients(tokenId);
-            uint256[] memory bps = IRaribleV1(tokenAddress).getFeeBps(tokenId);
+            recipients = IRaribleV1(royaltyAddress).getFeeRecipients(tokenId);
+            uint256[] memory bps = IRaribleV1(royaltyAddress).getFeeBps(tokenId);
             require(recipients.length == bps.length);
             return (recipients, _computeAmounts(value, bps));
-        } else if (ERC165Checker.supportsInterface(tokenAddress, type(IFoundation).interfaceId)) {
+        } else if (ERC165Checker.supportsInterface(royaltyAddress, type(IFoundation).interfaceId)) {
             // Supports foundation interface.  Compute amounts
             uint256[] memory bps;
-            (recipients, bps) = IFoundation(tokenAddress).getFees(tokenId);
+            (recipients, bps) = IFoundation(royaltyAddress).getFees(tokenId);
             require(recipients.length == bps.length);
             return (recipients, _computeAmounts(value, bps));
-        } else if (ERC165Checker.supportsInterface(tokenAddress, type(IEIP2981).interfaceId)) {
+        } else if (ERC165Checker.supportsInterface(royaltyAddress, type(IEIP2981).interfaceId)) {
             // Supports EIP2981.  Return amounts
-            (address recipient, uint256 amount) = IEIP2981(tokenAddress).royaltyInfo(tokenId, value);
+            (address recipient, uint256 amount) = IEIP2981(royaltyAddress).royaltyInfo(tokenId, value);
             recipients = new address payable[](1);
             amounts = new uint256[](1);
             recipients[0] = payable(recipient);
             amounts[0] = amount;
-        } else if (ERC165Checker.supportsInterface(tokenAddress, type(IZoraOverride).interfaceId)) {
+        } else if (ERC165Checker.supportsInterface(royaltyAddress, type(IZoraOverride).interfaceId)) {
             // Support Zora override
             uint256[] memory bps;
-            (recipients, bps) = IZoraOverride(tokenAddress).convertBidShares(originalTokenAddress, tokenId);
+            (recipients, bps) = IZoraOverride(royaltyAddress).convertBidShares(tokenAddress, tokenId);
             return (recipients, _computeAmounts(value, bps));
         }
         return (recipients, amounts);

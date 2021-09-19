@@ -42,10 +42,12 @@ contract RoyaltyRegistry is ERC165, OwnableUpgradeable, IRoyaltyRegistry {
     }
 
     /**
-     * @dev See {IRegistry-overrideAddress}.
+     * @dev See {IRegistry-getRoyaltyAddress}.
      */
-    function getOverride(address tokenAddress) external view override returns(address) {
-        return _overrides[tokenAddress];
+    function getRoyaltyAddress(address tokenAddress) external view override returns(address) {
+        address override_ = _overrides[tokenAddress];
+        if (override_ != address(0)) return override_;
+        return tokenAddress;
     }
 
 }

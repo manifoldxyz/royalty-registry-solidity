@@ -23,9 +23,9 @@ interface IRoyaltyRegistry is IERC165 {
     function overrideAddress(address tokenAddress, address royaltyAddress) external;
 
     /**
-     * Returns royalty override address (if it exists).  Defaults to 0x0
+     * Returns royalty address location.  Returns the tokenAddress by default, or the override if it exists
      *
-     * @param tokenAddress    - The token address you wish to override
+     * @param tokenAddress    - The token address you are looking up the royalty for
      */
-    function getOverride(address tokenAddress) external view returns(address);
+    function getRoyaltyAddress(address tokenAddress) external view returns(address);
 }
