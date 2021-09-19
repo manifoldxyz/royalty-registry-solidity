@@ -119,6 +119,8 @@ contract('Registry', function ([...accounts]) {
       // Simulate paying a royalty and check gas cost
       await mockRoyaltyPayer.deposit({from:owner, value:value*100})
       var tx;
+      tx = await mockRoyaltyPayer.payout(engine.address, mockContract.address, 1, value);
+      console.log("Payout gas no royalties: %s", tx.receipt.gasUsed);
       tx = await mockRoyaltyPayer.payout(engine.address, mockManifold.address, manifoldTokenId, value);
       console.log("Payout gas manifold: %s", tx.receipt.gasUsed);
       tx = await mockRoyaltyPayer.payout(engine.address, mockFoundation.address, foundationTokenId, value);
