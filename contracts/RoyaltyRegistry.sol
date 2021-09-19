@@ -10,6 +10,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
 import "./IRoyaltyRegistry.sol";
+import "./specs/INiftyGateway.sol";
 
 /**
  * @dev Registry to lookup royalty configurations
@@ -47,7 +48,14 @@ contract RoyaltyRegistry is ERC165, OwnableUpgradeable, IRoyaltyRegistry {
     function _overrideAllowed(address tokenAddress) private view returns(bool) {
         if (owner() == _msgSender()) return true;
         if (OwnableUpgradeable(tokenAddress).owner() == _msgSender()) return true;
-        // TODO: Add additional override rules
+        
+        // Nifty Gateway overrides
+        try INiftyBuilderInstance(tokenAddress).niftyRegistryContract() returns (address niftyRegistry) {
+            try INiftyRegistry(niftyRegistry).isValidNiftySender(_msgSender()) returns (bool valid) {
+                return valid;
+            } catch {}
+        } catch {}
+
         return false;
     }
 
