@@ -35,7 +35,7 @@ contract RoyaltyRegistry is ERC165, OwnableUpgradeable, IRoyaltyRegistry {
      * @dev See {IRegistry-overrideAddress}.
      */
     function overrideAddress(address tokenAddress, address royaltyAddress) public override {
-        require(tokenAddress.isContract() && royaltyAddress.isContract(), "Invalid input");
+        require(tokenAddress.isContract() && (royaltyAddress.isContract() || royaltyAddress == address(0)), "Invalid input");
         require(owner() == _msgSender() || OwnableUpgradeable(tokenAddress).owner() == _msgSender(), "Must be contract owner to override");
         _overrides[tokenAddress] = royaltyAddress;
         emit RoyaltyOverride(_msgSender(), tokenAddress, royaltyAddress);
