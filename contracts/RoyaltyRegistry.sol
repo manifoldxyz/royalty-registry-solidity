@@ -48,13 +48,25 @@ contract RoyaltyRegistry is ERC165, OwnableUpgradeable, IRoyaltyRegistry {
     function _overrideAllowed(address tokenAddress) private view returns(bool) {
         if (owner() == _msgSender()) return true;
         if (OwnableUpgradeable(tokenAddress).owner() == _msgSender()) return true;
-        
+
         // Nifty Gateway overrides
         try INiftyBuilderInstance(tokenAddress).niftyRegistryContract() returns (address niftyRegistry) {
             try INiftyRegistry(niftyRegistry).isValidNiftySender(_msgSender()) returns (bool valid) {
                 return valid;
             } catch {}
         } catch {}
+
+        // OpenSea overrides
+        // TODO
+
+        // Foundation overrides
+        // TODO
+
+        // Superrare overrides
+        // TODO
+
+        // Rarible overrides
+        // Tokens already support Ownable
 
         return false;
     }
