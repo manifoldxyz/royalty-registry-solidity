@@ -23,6 +23,19 @@ import "./IRoyaltyRegistry.sol";
 contract RoyaltyEngineV1 is ERC165, OwnableUpgradeable, IRoyaltyEngineV1 {
     using AddressUpgradeable for address;
 
+    enum RoyaltySpec {
+        NOT_CONFIGURED,
+        NONE,
+        MANIFOLD,
+        RARIBLEV1,
+        RARIBLEV2,
+        FOUNDATION,
+        EIP2981,
+        ZORA
+    }
+
+    mapping (address => RoyaltySpec) _specCache;
+
     address public royaltyRegistry;
 
     function initialize(address royaltyRegistry_) public initializer {
@@ -39,52 +52,134 @@ contract RoyaltyEngineV1 is ERC165, OwnableUpgradeable, IRoyaltyEngineV1 {
     }
 
     /**
-     * @dev See {IRegistry-getRoyalty}.
+     * @dev See {IRoyaltyEngineV1-getRoyaltyAndCacheSpec}
+     */
+    function getRoyaltyAndCacheSpec(address tokenAddress, uint256 tokenId, uint256 value) public override returns(address payable[] memory recipients, uint256[] memory amounts) {
+        RoyaltySpec spec;
+        address royaltyAddress;
+        bool addToCache;
+
+        (recipients, amounts, spec, royaltyAddress, addToCache) = _getRoyaltyAndSpec(tokenAddress, tokenId, value);
+        if (addToCache) _specCache[royaltyAddress] = spec;
+        return (recipients, amounts);
+    }
+
+    /**
+     * @dev See {IRoyaltyEngineV1-getRoyalty}.
      */
     function getRoyalty(address tokenAddress, uint256 tokenId, uint256 value) public view override returns(address payable[] memory recipients, uint256[] memory amounts) {
-        address royaltyAddress = IRoyaltyRegistry(royaltyRegistry).getRoyaltyLookupAddress(tokenAddress);
-
-        try IManifold(royaltyAddress).getRoyalties(tokenId) returns(address payable[] memory recipients_, uint256[] memory bps) {
-            // Supports manifold interface.  Compute amounts
-            require(recipients_.length == bps.length);
-            return (recipients_, _computeAmounts(value, bps));
-        } catch {}
-        try IRaribleV2(royaltyAddress).getRaribleV2Royalties(tokenId) returns(IRaribleV2.Part[] memory royalties) {
-            // Supports rarible v2 interface. Compute amounts
-            recipients = new address payable[](royalties.length);
-            amounts = new uint256[](royalties.length);
-            for (uint i = 0; i < royalties.length; i++) {
-                recipients[i] = royalties[i].account;
-                amounts[i] = value*royalties[i].value/10000;
-            }
-            return (recipients, amounts);
-        } catch {}
-        try IRaribleV1(royaltyAddress).getFeeRecipients(tokenId) returns(address payable[] memory recipients_) {
-            // Supports rarible v1 interface. Compute amounts
-            recipients_ = IRaribleV1(royaltyAddress).getFeeRecipients(tokenId);
-            try IRaribleV1(royaltyAddress).getFeeBps(tokenId) returns (uint256[] memory bps) {
-                require(recipients_.length == bps.length);
-                return (recipients_, _computeAmounts(value, bps));
-            } catch {}
-        } catch {}
-        try IFoundation(royaltyAddress).getFees(tokenId) returns(address payable[] memory recipients_, uint256[] memory bps) {
-            // Supports foundation interface.  Compute amounts
-            require(recipients_.length == bps.length);
-            return (recipients_, _computeAmounts(value, bps));
-        } catch {}
-        try IEIP2981(royaltyAddress).royaltyInfo(tokenId, value) returns(address recipient, uint256 amount) {
-            // Supports EIP2981.  Return amounts
-            recipients = new address payable[](1);
-            amounts = new uint256[](1);
-            recipients[0] = payable(recipient);
-            amounts[0] = amount;
-            return (recipients, amounts);
-        } catch {}
-        try IZoraOverride(royaltyAddress).convertBidShares(tokenAddress, tokenId) returns(address payable[] memory recipients_, uint256[] memory bps) {
-            // Support Zora override
-            return (recipients_, _computeAmounts(value, bps));
-        } catch {}
+        (recipients, amounts, , , ) = _getRoyaltyAndSpec(tokenAddress, tokenId, value);
         return (recipients, amounts);
+    }
+
+    /**
+     * @dev Get the royalty and royalty spec for a given token
+     * 
+     * returns recipieints array, amounts array, royalty spec, royalty address, whether or not to add to cache
+     */
+    function _getRoyaltyAndSpec(address tokenAddress, uint256 tokenId, uint256 value) private view returns(address payable[] memory recipients, uint256[] memory amounts, RoyaltySpec spec, address royaltyAddress, bool addToCache) {
+
+        royaltyAddress = IRoyaltyRegistry(royaltyRegistry).getRoyaltyLookupAddress(tokenAddress);
+        spec = _specCache[royaltyAddress];
+
+        if (spec == RoyaltySpec.NOT_CONFIGURED) {
+            // No spec configured yet, so we need to detect the spec
+            addToCache = true;
+            try IManifold(royaltyAddress).getRoyalties(tokenId) returns(address payable[] memory recipients_, uint256[] memory bps) {
+                // Supports manifold interface.  Compute amounts
+                require(recipients_.length == bps.length);
+                return (recipients_, _computeAmounts(value, bps), RoyaltySpec.MANIFOLD, royaltyAddress, addToCache);
+            } catch {}
+            try IRaribleV2(royaltyAddress).getRaribleV2Royalties(tokenId) returns(IRaribleV2.Part[] memory royalties) {
+                // Supports rarible v2 interface. Compute amounts
+                recipients = new address payable[](royalties.length);
+                amounts = new uint256[](royalties.length);
+                for (uint i = 0; i < royalties.length; i++) {
+                    recipients[i] = royalties[i].account;
+                    amounts[i] = value*royalties[i].value/10000;
+                }
+                return (recipients, amounts, RoyaltySpec.RARIBLEV2, royaltyAddress, addToCache);
+            } catch {}
+            try IRaribleV1(royaltyAddress).getFeeRecipients(tokenId) returns(address payable[] memory recipients_) {
+                // Supports rarible v1 interface. Compute amounts
+                recipients_ = IRaribleV1(royaltyAddress).getFeeRecipients(tokenId);
+                try IRaribleV1(royaltyAddress).getFeeBps(tokenId) returns (uint256[] memory bps) {
+                    require(recipients_.length == bps.length);
+                    return (recipients_, _computeAmounts(value, bps), RoyaltySpec.RARIBLEV1, royaltyAddress, addToCache);
+                } catch {}
+            } catch {}
+            try IFoundation(royaltyAddress).getFees(tokenId) returns(address payable[] memory recipients_, uint256[] memory bps) {
+                // Supports foundation interface.  Compute amounts
+                require(recipients_.length == bps.length);
+                return (recipients_, _computeAmounts(value, bps), RoyaltySpec.FOUNDATION, royaltyAddress, addToCache);
+            } catch {}
+            try IEIP2981(royaltyAddress).royaltyInfo(tokenId, value) returns(address recipient, uint256 amount) {
+                // Supports EIP2981.  Return amounts
+                recipients = new address payable[](1);
+                amounts = new uint256[](1);
+                recipients[0] = payable(recipient);
+                amounts[0] = amount;
+                return (recipients, amounts, RoyaltySpec.EIP2981, royaltyAddress, addToCache);
+            } catch {}
+            try IZoraOverride(royaltyAddress).convertBidShares(tokenAddress, tokenId) returns(address payable[] memory recipients_, uint256[] memory bps) {
+                // Support Zora override
+                require(recipients_.length == bps.length);
+                return (recipients_, _computeAmounts(value, bps), RoyaltySpec.ZORA, royaltyAddress, addToCache);
+            } catch {}
+
+            // No supported royalties configured
+            return (recipients, amounts, RoyaltySpec.NONE, royaltyAddress, addToCache);
+        } else {
+            // Spec exists, just execute the appropriate one
+            addToCache = false;
+            if (spec == RoyaltySpec.NONE) {
+                return (recipients, amounts, spec, royaltyAddress, addToCache);
+            } else if (spec == RoyaltySpec.MANIFOLD) {
+                // Manifold spec
+                uint256[] memory bps;
+                (recipients, bps) = IManifold(royaltyAddress).getRoyalties(tokenId);
+                require(recipients.length == bps.length);
+                return (recipients, _computeAmounts(value, bps), spec, royaltyAddress, addToCache);
+            } else if (spec == RoyaltySpec.RARIBLEV2) {
+                // Rarible v2 spec
+                IRaribleV2.Part[] memory royalties;
+                royalties = IRaribleV2(royaltyAddress).getRaribleV2Royalties(tokenId);
+                recipients = new address payable[](royalties.length);
+                amounts = new uint256[](royalties.length);
+                for (uint i = 0; i < royalties.length; i++) {
+                    recipients[i] = royalties[i].account;
+                    amounts[i] = value*royalties[i].value/10000;
+                }
+                return (recipients, amounts, spec, royaltyAddress, addToCache);
+            } else if (spec == RoyaltySpec.RARIBLEV1) {
+                // Rarible v1 spec
+                uint256[] memory bps;
+                recipients = IRaribleV1(royaltyAddress).getFeeRecipients(tokenId);
+                bps = IRaribleV1(royaltyAddress).getFeeBps(tokenId);
+                require(recipients.length == bps.length);
+                return (recipients, _computeAmounts(value, bps), spec, royaltyAddress, addToCache);
+            } else if (spec == RoyaltySpec.FOUNDATION) {
+                // Foundation spec
+                uint256[] memory bps;
+                (recipients, bps) = IFoundation(royaltyAddress).getFees(tokenId);
+                require(recipients.length == bps.length);
+                return (recipients, _computeAmounts(value, bps), spec, royaltyAddress, addToCache);
+            } else if (spec == RoyaltySpec.EIP2981) {
+                // EIP2981 spec
+                (address recipient, uint256 amount) = IEIP2981(royaltyAddress).royaltyInfo(tokenId, value);
+                recipients = new address payable[](1);
+                amounts = new uint256[](1);
+                recipients[0] = payable(recipient);
+                amounts[0] = amount;
+                return (recipients, amounts, spec, royaltyAddress, addToCache);
+            } else if (spec == RoyaltySpec.ZORA) {
+                // Zora spec
+                uint256[] memory bps;
+                (recipients, bps) =IZoraOverride(royaltyAddress).convertBidShares(tokenAddress, tokenId);
+                require(recipients.length == bps.length);
+                return (recipients, _computeAmounts(value, bps), spec, royaltyAddress, addToCache);
+            }
+        }
     }
 
     /**

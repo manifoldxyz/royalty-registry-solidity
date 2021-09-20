@@ -42,12 +42,25 @@ The common interface attempts to unify the lookup for various royalty specificat
 
 As new standards are adopted, they can be added to the royalty engine.  If new standards require a more complex output, the royalty engine can be upgraded.
 
+The royalty engine also contains a spec cache to make lookups faster.  The cache is filled only if getRoyaltyAndCacheSpec is called, which is only useable within another contract as it is a mutable function,
+
 #### Methods
 
 ```
 function getRoyalty(address tokenAddress, uint256 tokenId, uint256 value) public view override returns(address payable[] memory recipients, uint256[] memory amounts)
 ```
 Get the royalties for a given token and sale amount
+
+- Input parameter: *tokenAddress* - address of token
+- Input parameter: *tokenId*      - id of token
+- Input parameter: *value*        - sale value of token
+
+Returns two arrays, first is the list of royalty recipients, second is the amounts for each recipient.
+
+```
+function getRoyaltyAndCacheSpec(address tokenAddress, uint256 tokenId, uint256 value) public view override returns(address payable[] memory recipients, uint256[] memory amounts)
+```
+Get the royalties for a given token and sale amount.  Also cache the royalty spec for the given tokenAddress for more gas efficient future lookup.
 
 - Input parameter: *tokenAddress* - address of token
 - Input parameter: *tokenId*      - id of token

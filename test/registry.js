@@ -134,6 +134,29 @@ contract('Registry', function ([...accounts]) {
       tx = await mockRoyaltyPayer.payout(engine.address, mockContract.address, unallocatedTokenId, value);
       console.log("Payout gas used with override: %s", tx.receipt.gasUsed);
 
+      // Simulate after running cache
+      await engine.getRoyaltyAndCacheSpec(mockManifold.address, manifoldTokenId, value)
+      await engine.getRoyaltyAndCacheSpec(mockFoundation.address, foundationTokenId, value)
+      await engine.getRoyaltyAndCacheSpec(mockRaribleV1.address, raribleV1TokenId, value)
+      await engine.getRoyaltyAndCacheSpec(mockRaribleV2.address, raribleV2TokenId, value)
+      await engine.getRoyaltyAndCacheSpec(mockEIP2981.address, eip2981TokenId, value)
+      await mockRoyaltyPayer.payout(engine.address, mockContract.address, unallocatedTokenId, value);
+      tx = await mockRoyaltyPayer.payout(engine.address, mockContract.address, 1, value);
+      console.log("CACHE: Payout gas no royalties: %s", tx.receipt.gasUsed);
+      tx = await mockRoyaltyPayer.payout(engine.address, mockManifold.address, manifoldTokenId, value);
+      console.log("CACHE: Payout gas manifold: %s", tx.receipt.gasUsed);
+      tx = await mockRoyaltyPayer.payout(engine.address, mockFoundation.address, foundationTokenId, value);
+      console.log("CACHE: Payout gas foundation: %s", tx.receipt.gasUsed);
+      tx = await mockRoyaltyPayer.payout(engine.address, mockRaribleV1.address, raribleV1TokenId, value);
+      console.log("CACHE: Payout gas rariblev1: %s", tx.receipt.gasUsed);
+      tx = await mockRoyaltyPayer.payout(engine.address, mockRaribleV2.address, raribleV2TokenId, value);
+      console.log("CACHE: Payout gas rariblev2: %s", tx.receipt.gasUsed);
+      tx = await mockRoyaltyPayer.payout(engine.address, mockEIP2981.address, eip2981TokenId, value);
+      console.log("CACHE: Payout gas eip2981: %s", tx.receipt.gasUsed);
+      tx = await mockRoyaltyPayer.payout(engine.address, mockContract.address, unallocatedTokenId, value);
+      console.log("CACHE: Payout gas used with override: %s", tx.receipt.gasUsed);
+
+
     });
 
   });
