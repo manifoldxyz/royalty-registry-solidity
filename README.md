@@ -32,9 +32,15 @@ Override where to get royalty information from for a given token contract.  Only
 - Input parameter: *royaltyAddress* - new contract location to lookup royalties
 
 ```
-function getRoyaltyLookupAddress(address tokenAddress) public view
+function getRoyaltyLookupAddress(address tokenAddress) public view returns(address)
 ```
 Returns the address that should be used to lookup royalties.  Defaults to return the tokenAddress unless an override is set.
+
+```
+function overrideAllowed(address tokenAddress) public view returns(bool)
+```
+Returns whether or not the address sender can override the royalty lookup address for the given token address.
+Example Use Case: A royalty lookup dApp can also show override functionality if it detects that they can override
 
 ### 2. Royalty Engine (v1)
 
