@@ -53,9 +53,9 @@ contract RoyaltyEngineV1 is ERC165, OwnableUpgradeable, IRoyaltyEngineV1 {
     }
 
     /**
-     * @dev See {IRoyaltyEngineV1-getRoyaltyAndCacheSpec}
+     * @dev See {IRoyaltyEngineV1-getRoyalty}
      */
-    function getRoyaltyAndCacheSpec(address tokenAddress, uint256 tokenId, uint256 value) public override returns(address payable[] memory recipients, uint256[] memory amounts) {
+    function getRoyalty(address tokenAddress, uint256 tokenId, uint256 value) public override returns(address payable[] memory recipients, uint256[] memory amounts) {
         int16 spec;
         address royaltyAddress;
         bool addToCache;
@@ -66,9 +66,9 @@ contract RoyaltyEngineV1 is ERC165, OwnableUpgradeable, IRoyaltyEngineV1 {
     }
 
     /**
-     * @dev See {IRoyaltyEngineV1-getRoyalty}.
+     * @dev See {IRoyaltyEngineV1-getRoyaltyView}.
      */
-    function getRoyalty(address tokenAddress, uint256 tokenId, uint256 value) public view override returns(address payable[] memory recipients, uint256[] memory amounts) {
+    function getRoyaltyView(address tokenAddress, uint256 tokenId, uint256 value) public view override returns(address payable[] memory recipients, uint256[] memory amounts) {
         (recipients, amounts, , , ) = _getRoyaltyAndSpec(tokenAddress, tokenId, value);
         return (recipients, amounts);
     }

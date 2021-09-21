@@ -12,8 +12,7 @@ import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 interface IRoyaltyEngineV1 is IERC165 {
 
     /**
-     * Get the royalty for a given token (address, id) and value amount.  Never cache the result, as the recipients and values can change.
-     * However, the royalty spec is cached for faster future lookup
+     * Get the royalty for a given token (address, id) and value amount.  Does not cache the bps/amounts.  Caches the spec for a given token address
      * 
      * @param tokenAddress - The address of the token
      * @param tokenId      - The id of the token
@@ -21,10 +20,10 @@ interface IRoyaltyEngineV1 is IERC165 {
      *
      * returns Two arrays of equal length, royalty recipients and the corresponding amount each recipient should get
      */
-    function getRoyaltyAndCacheSpec(address tokenAddress, uint256 tokenId, uint256 value) external returns(address payable[] memory recipients, uint256[] memory amounts);
+    function getRoyalty(address tokenAddress, uint256 tokenId, uint256 value) external returns(address payable[] memory recipients, uint256[] memory amounts);
 
     /**
-     * Get the royalty for a given token (address, id) and value amount.  Never cache the result, as the recipients and values can change.
+     * View only version of getRoyalty
      * 
      * @param tokenAddress - The address of the token
      * @param tokenId      - The id of the token
@@ -32,5 +31,5 @@ interface IRoyaltyEngineV1 is IERC165 {
      *
      * returns Two arrays of equal length, royalty recipients and the corresponding amount each recipient should get
      */
-    function getRoyalty(address tokenAddress, uint256 tokenId, uint256 value) external view returns(address payable[] memory recipients, uint256[] memory amounts);
+    function getRoyaltyView(address tokenAddress, uint256 tokenId, uint256 value) external view returns(address payable[] memory recipients, uint256[] memory amounts);
 }

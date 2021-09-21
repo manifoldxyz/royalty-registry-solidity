@@ -55,7 +55,8 @@ The royalty engine also contains a spec cache to make lookups faster.  The cache
 ```
 function getRoyalty(address tokenAddress, uint256 tokenId, uint256 value) public view override returns(address payable[] memory recipients, uint256[] memory amounts)
 ```
-Get the royalties for a given token and sale amount
+Get the royalties for a given token and sale amount.  Also cache the royalty spec for the given tokenAddress for more gas efficient future lookup.
+Use this within marketplace contracts.
 
 - Input parameter: *tokenAddress* - address of token
 - Input parameter: *tokenId*      - id of token
@@ -64,9 +65,9 @@ Get the royalties for a given token and sale amount
 Returns two arrays, first is the list of royalty recipients, second is the amounts for each recipient.
 
 ```
-function getRoyaltyAndCacheSpec(address tokenAddress, uint256 tokenId, uint256 value) public view override returns(address payable[] memory recipients, uint256[] memory amounts)
+function getRoyaltyView(address tokenAddress, uint256 tokenId, uint256 value) public view override returns(address payable[] memory recipients, uint256[] memory amounts)
 ```
-Get the royalties for a given token and sale amount.  Also cache the royalty spec for the given tokenAddress for more gas efficient future lookup.
+View only version of getRoyalty.  Useful for dApps that want to provide lookup functionality.
 
 - Input parameter: *tokenAddress* - address of token
 - Input parameter: *tokenId*      - id of token

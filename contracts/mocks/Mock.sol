@@ -130,7 +130,7 @@ contract MockRoyaltyPayer {
     function payout(address royaltyEngine, address tokenAddress, uint256 tokenId, uint256 saleAmount) public {
         address payable[] memory recipients;
         uint256[] memory amounts;
-        (recipients, amounts) = IRoyaltyEngineV1(royaltyEngine).getRoyalty(tokenAddress, tokenId, saleAmount);
+        (recipients, amounts) = IRoyaltyEngineV1(royaltyEngine).getRoyaltyView(tokenAddress, tokenId, saleAmount);
         for (uint i = 0; i < recipients.length; i++) {
             recipients[i].transfer(amounts[i]);
         }

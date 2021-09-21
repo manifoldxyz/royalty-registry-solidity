@@ -80,39 +80,39 @@ contract('Registry', function ([...accounts]) {
       var value = 10000;
       var result;
 
-      result = await engine.getRoyalty(mockManifold.address, manifoldTokenId, value);
+      result = await engine.getRoyaltyView(mockManifold.address, manifoldTokenId, value);
       assert.equal(result[0][0], another2);
       assert.deepEqual(result[1][0], web3.utils.toBN(value*manifoldBps/10000));
         
-      result = await engine.getRoyalty(mockFoundation.address, foundationTokenId, value);
+      result = await engine.getRoyaltyView(mockFoundation.address, foundationTokenId, value);
       assert.equal(result[0][0], another3);
       assert.deepEqual(result[1][0], web3.utils.toBN(value*foundationBps/10000));
         
-      result = await engine.getRoyalty(mockRaribleV1.address, raribleV1TokenId, value);
+      result = await engine.getRoyaltyView(mockRaribleV1.address, raribleV1TokenId, value);
       assert.equal(result[0][0], another4);
       assert.deepEqual(result[1][0], web3.utils.toBN(value*raribleV1Bps/10000));
         
-      result = await engine.getRoyalty(mockRaribleV2.address, raribleV2TokenId, value);
+      result = await engine.getRoyaltyView(mockRaribleV2.address, raribleV2TokenId, value);
       assert.equal(result[0][0], another5);
       assert.deepEqual(result[1][0], web3.utils.toBN(value*raribleV2Bps/10000));
         
-      result = await engine.getRoyalty(mockEIP2981.address, eip2981TokenId, value);
+      result = await engine.getRoyaltyView(mockEIP2981.address, eip2981TokenId, value);
       assert.equal(result[0][0], another6);
       assert.deepEqual(result[1][0], web3.utils.toBN(value*eip2981Bps/10000));
 
-      result = await engine.getRoyalty(mockContract.address, unallocatedTokenId, value);
+      result = await engine.getRoyaltyView(mockContract.address, unallocatedTokenId, value);
       assert.equal(result[0].length, 0);
       assert.equal(result[1].length, 0);
 
       // Override royalty logic
       await registry.setRoyaltyLookupAddress(mockContract.address, mockManifold.address, {from: owner});
-      result = await engine.getRoyalty(mockContract.address, unallocatedTokenId, value);
+      result = await engine.getRoyaltyView(mockContract.address, unallocatedTokenId, value);
       assert.equal(result[0].length, 0);
       assert.equal(result[1].length, 0);
 
       // Set royalty
       await mockManifold.setRoyalties(unallocatedTokenId, [another1], [unallocatedBps]);
-      result = await engine.getRoyalty(mockContract.address, unallocatedTokenId, value);
+      result = await engine.getRoyaltyView(mockContract.address, unallocatedTokenId, value);
       assert.equal(result[0][0], another1);
       assert.deepEqual(result[1][0], web3.utils.toBN(value*unallocatedBps/10000));
 
@@ -135,11 +135,11 @@ contract('Registry', function ([...accounts]) {
       console.log("Payout gas used with override: %s", tx.receipt.gasUsed);
 
       // Simulate after running cache
-      await engine.getRoyaltyAndCacheSpec(mockManifold.address, manifoldTokenId, value)
-      await engine.getRoyaltyAndCacheSpec(mockFoundation.address, foundationTokenId, value)
-      await engine.getRoyaltyAndCacheSpec(mockRaribleV1.address, raribleV1TokenId, value)
-      await engine.getRoyaltyAndCacheSpec(mockRaribleV2.address, raribleV2TokenId, value)
-      await engine.getRoyaltyAndCacheSpec(mockEIP2981.address, eip2981TokenId, value)
+      await engine.getRoyalty(mockManifold.address, manifoldTokenId, value)
+      await engine.getRoyalty(mockFoundation.address, foundationTokenId, value)
+      await engine.getRoyalty(mockRaribleV1.address, raribleV1TokenId, value)
+      await engine.getRoyalty(mockRaribleV2.address, raribleV2TokenId, value)
+      await engine.getRoyalty(mockEIP2981.address, eip2981TokenId, value)
       await mockRoyaltyPayer.payout(engine.address, mockContract.address, unallocatedTokenId, value);
       tx = await mockRoyaltyPayer.payout(engine.address, mockContract.address, 1, value);
       console.log("CACHE: Payout gas no royalties: %s", tx.receipt.gasUsed);
