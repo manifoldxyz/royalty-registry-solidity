@@ -6,6 +6,7 @@ const RoyaltyEngineV1 = artifacts.require("RoyaltyEngineV1")
 const MockContract = artifacts.require("MockContract");
 const MockManifold = artifacts.require("MockManifold");
 const MockFoundation = artifacts.require("MockFoundation");
+const MockFoundationTreasury = artifacts.require("MockFoundationTreasury");
 const MockRaribleV1 = artifacts.require("MockRaribleV1");
 const MockRaribleV2 = artifacts.require("MockRaribleV2");
 const MockEIP2981 = artifacts.require("MockEIP2981");
@@ -14,6 +15,7 @@ const MockRoyaltyPayer = artifacts.require("MockRoyaltyPayer");
 contract('Registry', function ([...accounts]) {
   const [
     owner,
+    admin,
     another1,
     another2,
     another3,
@@ -28,6 +30,7 @@ contract('Registry', function ([...accounts]) {
     var mockContract;
     var mockManifold;
     var mockFoundation;
+    var mockFoundationTreasury;
     var mockRaribleV1;
     var mockRaribleV2;
     var mockEIP2981;
@@ -39,6 +42,7 @@ contract('Registry', function ([...accounts]) {
       mockContract = await MockContract.new({from: another1});
       mockManifold = await MockManifold.new({from: another2});
       mockFoundation = await MockFoundation.new({from: another3});
+      mockFoundationTreasury = await MockFoundationTreasury.new({from: another3});
       mockRaribleV1 = await MockRaribleV1.new({from: another4});
       mockRaribleV2 = await MockRaribleV2.new({from: another5});
       mockEIP2981 = await MockEIP2981.new({from: another6});
@@ -155,6 +159,18 @@ contract('Registry', function ([...accounts]) {
       console.log("CACHE: Payout gas eip2981: %s", tx.receipt.gasUsed);
       tx = await mockRoyaltyPayer.payout(engine.address, mockContract.address, unallocatedTokenId, value);
       console.log("CACHE: Payout gas used with override: %s", tx.receipt.gasUsed);
+
+      // Foundation override test
+      await truffleAssert.reverts(registry.setRoyaltyLookupAddress(mockFoundation.address, mockManifold.address, {from: admin}));
+      // Foundation treasury address with no admin
+      await mockFoundation.setFoundationTreasury(mockContract.address);
+      await truffleAssert.reverts(registry.setRoyaltyLookupAddress(mockFoundation.address, mockManifold.address, {from: admin}), "Permission denied");
+      // Set to proper treasury
+      await mockFoundation.setFoundationTreasury(mockFoundationTreasury.address);
+      await truffleAssert.reverts(registry.setRoyaltyLookupAddress(mockFoundation.address, mockManifold.address, {from: admin}), "Permission denied");
+      await mockFoundationTreasury.setAdmin(admin);
+      await registry.setRoyaltyLookupAddress(mockFoundation.address, mockManifold.address, {from: admin})
+      await truffleAssert.reverts(registry.setRoyaltyLookupAddress(mockFoundation.address, mockManifold.address, {from: another1}), "Permission denied");
 
 
     });

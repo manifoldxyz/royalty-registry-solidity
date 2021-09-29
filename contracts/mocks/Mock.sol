@@ -53,16 +53,38 @@ contract MockManifold is IManifold, MockRoyalty, ERC165 {
 /**
  * Implements Foundation interface
  */
-contract MockFoundation is IFoundation, MockRoyalty, ERC165 {
-    
+contract MockFoundation is IFoundation, IFoundationTreasuryNode, MockRoyalty, ERC165 {
+
+    address payable private _foundationTreasury;    
+
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165) returns (bool) {
         return interfaceId == type(IFoundation).interfaceId || super.supportsInterface(interfaceId);
     }
 
     function getFees(uint256 tokenId) public override view returns (address payable[] memory, uint256[] memory) {
         return (_receivers[tokenId], _bps[tokenId]);
-    }   
+    }
 
+    function getFoundationTreasury() public override view returns(address payable) {
+        return _foundationTreasury;
+    }
+
+    function setFoundationTreasury(address payable newTreasury) public {
+        _foundationTreasury = newTreasury;
+    }
+
+}
+
+contract MockFoundationTreasury is IFoundationTreasury {
+    address private _admin;
+
+    function setAdmin(address admin) public {
+        _admin = admin;
+    }
+
+    function isAdmin(address account) public override view returns(bool) {
+        return account == _admin;
+    }
 }
 
 /**
