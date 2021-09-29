@@ -11,6 +11,7 @@ import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
 import "./IRoyaltyRegistry.sol";
 import "./specs/INiftyGateway.sol";
+import "./specs/IFoundation.sol";
 
 /**
  * @dev Registry to lookup royalty configurations
@@ -69,7 +70,11 @@ contract RoyaltyRegistry is ERC165, OwnableUpgradeable, IRoyaltyRegistry {
         // TODO
 
         // Foundation overrides
-        // TODO
+        try IFoundationTreasuryNode(tokenAddress).getFoundationTreasury() returns (address payable foundationTreasury) {
+            try IFoundationTreasury(foundationTreasury).isAdmin(_msgSender()) returns (bool isAdmin) {
+                return isAdmin;
+            } catch {}
+        } catch {}
 
         // Superrare overrides
         // TODO

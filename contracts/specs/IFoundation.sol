@@ -10,3 +10,11 @@ interface IFoundation {
      */
     function getFees(uint256 tokenId) external view returns (address payable[] memory, uint256[] memory);
 }
+
+interface IFoundationTreasuryNode {
+    function getFoundationTreasury() external view returns (address payable);
+}
+
+interface IFoundationTreasury {
+    function isAdmin(address account) external view returns (bool);
+}
