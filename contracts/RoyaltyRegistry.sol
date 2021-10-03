@@ -77,7 +77,7 @@ contract RoyaltyRegistry is ERC165, OwnableUpgradeable, IRoyaltyRegistry {
         } catch {}
 
         // Superrare overrides
-        // TODO
+        // Tokens and registry already support Ownable
 
         // Rarible overrides
         // Tokens already support Ownable

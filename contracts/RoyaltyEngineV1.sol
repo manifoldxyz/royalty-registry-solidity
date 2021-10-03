@@ -9,9 +9,12 @@ import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
+import "./libraries/SuperRareContracts.sol";
+
 import "./specs/IManifold.sol";
 import "./specs/IRarible.sol";
 import "./specs/IFoundation.sol";
+import "./specs/ISuperRare.sol";
 import "./specs/IEIP2981.sol";
 import "./specs/IZoraOverride.sol";
 import "./IRoyaltyEngineV1.sol";
@@ -33,7 +36,8 @@ contract RoyaltyEngineV1 is ERC165, OwnableUpgradeable, IRoyaltyEngineV1 {
     int16 constant private RARIBLEV2 = 3;
     int16 constant private FOUNDATION = 4;
     int16 constant private EIP2981 = 5;
-    int16 constant private ZORA = 6;
+    int16 constant private SUPERRARE = 6;
+    int16 constant private ZORA = 7;
 
     mapping (address => int16) _specCache;
 
@@ -86,6 +90,19 @@ contract RoyaltyEngineV1 is ERC165, OwnableUpgradeable, IRoyaltyEngineV1 {
         if (spec <= NOT_CONFIGURED && spec > NONE) {
             // No spec configured yet, so we need to detect the spec
             addToCache = true;
+
+            // SuperRare handling
+            if (tokenAddress == SuperRareContracts.SUPERRARE_V1 || tokenAddress == SuperRareContracts.SUPERRARE_V2) {
+                try ISuperRareRegistry(SuperRareContracts.SUPERRARE_REGISTRY).tokenCreator(tokenAddress, tokenId) returns(address payable creator) {
+                    try ISuperRareRegistry(SuperRareContracts.SUPERRARE_REGISTRY).calculateRoyaltyFee(tokenAddress, tokenId, value) returns(uint256 amount) {
+                        recipients = new address payable[](1);
+                        amounts = new uint256[](1);
+                        recipients[0] = creator;
+                        amounts[0] = amount;
+                        return (recipients, amounts, SUPERRARE, royaltyAddress, addToCache);                        
+                    } catch {}
+                } catch {}
+            }
             try IManifold(royaltyAddress).getRoyalties(tokenId) returns(address payable[] memory recipients_, uint256[] memory bps) {
                 // Supports manifold interface.  Compute amounts
                 require(recipients_.length == bps.length);
@@ -173,6 +190,15 @@ contract RoyaltyEngineV1 is ERC165, OwnableUpgradeable, IRoyaltyEngineV1 {
                 recipients[0] = payable(recipient);
                 amounts[0] = amount;
                 return (recipients, amounts, spec, royaltyAddress, addToCache);
+            } else if (spec == SUPERRARE) {
+                // SUPERRARE spec
+                address payable creator = ISuperRareRegistry(SuperRareContracts.SUPERRARE_REGISTRY).tokenCreator(tokenAddress, tokenId);
+                uint256 amount = ISuperRareRegistry(SuperRareContracts.SUPERRARE_REGISTRY).calculateRoyaltyFee(tokenAddress, tokenId, value);
+                recipients = new address payable[](1);
+                amounts = new uint256[](1);
+                recipients[0] = creator;
+                amounts[0] = amount;
+                return (recipients, amounts, spec, royaltyAddress, addToCache);            
             } else if (spec == ZORA) {
                 // Zora spec
                 uint256[] memory bps;
