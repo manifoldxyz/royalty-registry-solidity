@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
+import "@manifoldxyz/libraries-solidity/contracts/access/IAdminControl.sol";
 
 import "./IRoyaltyRegistry.sol";
 import "./specs/INiftyGateway.sol";
@@ -57,6 +58,10 @@ contract RoyaltyRegistry is ERC165, OwnableUpgradeable, IRoyaltyRegistry {
      */
     function overrideAllowed(address tokenAddress) public view override returns(bool) {
         if (owner() == _msgSender()) return true;
+        if (ERC165Checker.supportsInterface(tokenAddress, type(IAdminControl).interfaceId)
+            && IAdminControl(tokenAddress).isAdmin(_msgSender())) {
+            return true;
+        }
         if (OwnableUpgradeable(tokenAddress).owner() == _msgSender()) return true;
 
         // Nifty Gateway overrides

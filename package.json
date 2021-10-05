@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/manifoldxyz/royalty-registry-solidity#readme",
   "dependencies": {
+    "@manifoldxyz/libraries-solidity": "^1.0.2",
     "@openzeppelin/contracts": "^4.3.2",
     "@openzeppelin/contracts-upgradeable": "^4.3.2"
   },
