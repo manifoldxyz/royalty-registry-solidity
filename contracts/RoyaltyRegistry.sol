@@ -72,7 +72,7 @@ contract RoyaltyRegistry is ERC165, OwnableUpgradeable, IRoyaltyRegistry {
         } catch {}
 
         // OpenSea overrides
-        // TODO
+        // Tokens already support Ownable
 
         // Foundation overrides
         try IFoundationTreasuryNode(tokenAddress).getFoundationTreasury() returns (address payable foundationTreasury) {
