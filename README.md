@@ -53,7 +53,7 @@ The royalty engine also contains a spec cache to make lookups faster.  The cache
 #### Methods
 
 ```
-function getRoyalty(address tokenAddress, uint256 tokenId, uint256 value) public view override returns(address payable[] memory recipients, uint256[] memory amounts)
+function getRoyalty(address tokenAddress, uint256 tokenId, uint256 value) public override returns(address payable[] memory recipients, uint256[] memory amounts)
 ```
 Get the royalties for a given token and sale amount.  Also cache the royalty spec for the given tokenAddress for more gas efficient future lookup.
 Use this within marketplace contracts.
