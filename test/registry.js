@@ -109,7 +109,7 @@ contract('Registry', function ([...accounts]) {
       assert.equal(result[1].length, 0);
 
       // Override royalty logic
-      await registry.setRoyaltyLookupAddress(mockContract.address, mockManifold.address, {from: owner});
+      await registry.setRoyaltyLookupAddress(mockContract.address, mockManifold.address, {from: another1});
       result = await engine.getRoyaltyView(mockContract.address, unallocatedTokenId, value);
       assert.equal(result[0].length, 0);
       assert.equal(result[1].length, 0);

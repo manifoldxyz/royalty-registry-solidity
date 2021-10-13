@@ -17,7 +17,7 @@ import "../IRoyaltyEngineV1.sol";
 /**
  * Does not implement any interface
  */
-contract MockContract {
+contract MockContract is Ownable {
 }
 
 

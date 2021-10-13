@@ -31,10 +31,16 @@ Override where to get royalty information from for a given token contract.  Only
 - Input parameter: *tokenAddress*   - address of token contract
 - Input parameter: *royaltyAddress* - new contract location to lookup royalties
 
+
+
+
 ```
 function getRoyaltyLookupAddress(address tokenAddress) public view returns(address)
 ```
 Returns the address that should be used to lookup royalties.  Defaults to return the tokenAddress unless an override is set.
+
+
+
 
 ```
 function overrideAllowed(address tokenAddress) public view returns(bool)
@@ -64,6 +70,10 @@ Use this within marketplace contracts.
 
 Returns two arrays, first is the list of royalty recipients, second is the amounts for each recipient.
 
+
+
+
+
 ```
 function getRoyaltyView(address tokenAddress, uint256 tokenId, uint256 value) public view override returns(address payable[] memory recipients, uint256[] memory amounts)
 ```
@@ -80,6 +90,12 @@ Returns two arrays, first is the list of royalty recipients, second is the amoun
 An upgradeable version of both the Royalty Registry and Royalty Engine (v1) will be deployed for public consumption.  There should only be one instance of the Royalty Registry (in order to ensure that people who wish to override do not have to do so in multiple places), while many instances of the Royalty Engine can exist.
 
 Marketplaces may choose to directly inherit the Royalty Engine to save a bit of gas (from our testing, a possible savings of 6400 gas per lookup).
+
+## Example Override Implementations
+
+See ```contracts/overrides/RoyaltyOverride.sol``` for a reference override implementation.  You can use EIP2981RoyaltyOverride to create a royalty implementation for your existing smart contract, and set the royalty override of your existing token contract to this new implementation.
+
+If you are implementing a completely new token contract, please feel free to use this reference implementation as part of your core contract.
 
 ### Web3 dApp
 We intend to deploy a web3 dApp which will:
