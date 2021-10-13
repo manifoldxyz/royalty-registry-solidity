@@ -23,6 +23,8 @@ Overrides are emitted as events so that any other systems that want to cache thi
 
 #### Methods
 
+---
+
 ```
 function setRoyaltyLookupAddress(address tokenAddress, address royaltyLookupAddress) public
 ```
@@ -31,22 +33,22 @@ Override where to get royalty information from for a given token contract.  Only
 - Input parameter: *tokenAddress*   - address of token contract
 - Input parameter: *royaltyAddress* - new contract location to lookup royalties
 
-
-
+---
 
 ```
 function getRoyaltyLookupAddress(address tokenAddress) public view returns(address)
 ```
 Returns the address that should be used to lookup royalties.  Defaults to return the tokenAddress unless an override is set.
 
-
-
+---
 
 ```
 function overrideAllowed(address tokenAddress) public view returns(bool)
 ```
 Returns whether or not the address sender can override the royalty lookup address for the given token address.
 Example Use Case: A royalty lookup dApp can also show override functionality if it detects that they can override
+
+---
 
 ### 2. Royalty Engine (v1)
 
@@ -57,6 +59,8 @@ As new standards are adopted, they can be added to the royalty engine.  If new s
 The royalty engine also contains a spec cache to make lookups faster.  The cache is filled only if getRoyaltyAndCacheSpec is called, which is only useable within another contract as it is a mutable function,
 
 #### Methods
+
+---
 
 ```
 function getRoyalty(address tokenAddress, uint256 tokenId, uint256 value) public override returns(address payable[] memory recipients, uint256[] memory amounts)
@@ -70,9 +74,7 @@ Use this within marketplace contracts.
 
 Returns two arrays, first is the list of royalty recipients, second is the amounts for each recipient.
 
-
-
-
+---
 
 ```
 function getRoyaltyView(address tokenAddress, uint256 tokenId, uint256 value) public view override returns(address payable[] memory recipients, uint256[] memory amounts)
@@ -84,6 +86,8 @@ View only version of getRoyalty.  Useful for dApps that want to provide lookup f
 - Input parameter: *value*        - sale value of token
 
 Returns two arrays, first is the list of royalty recipients, second is the amounts for each recipient.
+
+---
 
 ## Usage
 
