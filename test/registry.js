@@ -28,6 +28,7 @@ contract('Registry', function ([...accounts]) {
     var registry;
     var engine;
     var mockContract;
+    var randomContract;
     var mockManifold;
     var mockFoundation;
     var mockFoundationTreasury;
@@ -40,6 +41,7 @@ contract('Registry', function ([...accounts]) {
       registry = await deployProxy(RoyaltyRegistry, {initializer: "initialize", from:owner});
 
       mockContract = await MockContract.new({from: another1});
+      randomContract = await MockContract.new({from: another1})
       mockManifold = await MockManifold.new({from: another2});
       mockFoundation = await MockFoundation.new({from: another3});
       mockFoundationTreasury = await MockFoundationTreasury.new({from: another3});
@@ -83,6 +85,10 @@ contract('Registry', function ([...accounts]) {
 
       var value = 10000;
       var result;
+
+      result = await engine.getRoyaltyView(randomContract.address, 1, 1000);
+      assert.equal(result[0].length, 0);
+      assert.equal(result[1].length, 0);
 
       result = await engine.getRoyaltyView(mockManifold.address, manifoldTokenId, value);
       assert.equal(result[0][0], another2);
