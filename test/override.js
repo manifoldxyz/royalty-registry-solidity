@@ -2,6 +2,8 @@ const truffleAssert = require('truffle-assertions');
 const { deployProxy } = require('@openzeppelin/truffle-upgrades');
 
 const EIP2981RoyaltyOverride = artifacts.require("EIP2981RoyaltyOverride");
+const EIP2981RoyaltyOverrideCloneable = artifacts.require("EIP2981RoyaltyOverrideCloneable");
+const EIP2981RoyaltyOverrideFactory = artifacts.require("EIP2981RoyaltyOverrideFactory");
 const RoyaltyRegistry = artifacts.require("RoyaltyRegistry");
 const RoyaltyEngineV1 = artifacts.require("RoyaltyEngineV1")
 const MockContract = artifacts.require("MockContract");
@@ -23,11 +25,15 @@ contract('Registry', function ([...accounts]) {
     var engine;
     var mockContract;
     var override;
+    var overrideCloneable;
+    var overrideFactory;
 
     beforeEach(async function () {
       registry = await deployProxy(RoyaltyRegistry, {initializer: "initialize", from:owner});
       mockContract = await MockContract.new({from: another1});
       override = await EIP2981RoyaltyOverride.new({from: admin});
+      overrideCloneable = await EIP2981RoyaltyOverrideCloneable.new();
+      overrideFactory = await EIP2981RoyaltyOverrideFactory.new(overrideCloneable.address);
     });
 
     it('override test', async function () {
@@ -66,6 +72,36 @@ contract('Registry', function ([...accounts]) {
       assert.equal(result[0][0], another1);
       assert.equal(result[1].length, 1);
       assert.deepEqual(result[1][0], web3.utils.toBN(value*100/10000));
+
+      // Creating override clone
+      var tx = await overrideFactory.createOverride({from:admin});
+      console.log("Create override gas used: %s", tx.receipt.gasUsed);
+      var clone = await EIP2981RoyaltyOverride.at(tx.logs[0].args.newEIP2981RoyaltyOverride);
+      await clone.setTokenRoyalty(3, another3, 300, {from:admin});
+      result = await clone.royaltyInfo(3, value);
+      assert.equal(result[0], another3);
+      assert.equal(result[1], value*300/10000);
+
+      await clone.setDefaultRoyalty(another4, 400, {from:admin});
+      result = await clone.royaltyInfo(3, value);
+      assert.equal(result[0], another3);
+      assert.equal(result[1], value*300/10000);
+      result = await clone.royaltyInfo(4, value);
+      assert.equal(result[0], another4);
+      assert.equal(result[1], value*400/10000);
+
+      await registry.setRoyaltyLookupAddress(mockContract.address, clone.address, {from: another1});
+      result = await engine.getRoyaltyView(mockContract.address, 3, value);
+      assert.equal(result[0].length, 1);
+      assert.equal(result[0][0], another3);
+      assert.equal(result[1].length, 1);
+      assert.deepEqual(result[1][0], web3.utils.toBN(value*300/10000));
+      result = await engine.getRoyaltyView(mockContract.address, 4, value);
+      assert.equal(result[0].length, 1);
+      assert.equal(result[0][0], another4);
+      assert.equal(result[1].length, 1);
+      assert.deepEqual(result[1][0], web3.utils.toBN(value*400/10000));
+
     });
 
   });
