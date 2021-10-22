@@ -37,8 +37,8 @@ contract('Registry', function ([...accounts]) {
     });
 
     it('override test', async function () {
-      await truffleAssert.reverts(override.setTokenRoyalty(1, another1, 1), "Ownable: caller is not the owner");
-      await truffleAssert.reverts(override.setDefaultRoyalty(another1, 1), "Ownable: caller is not the owner");
+      await truffleAssert.reverts(override.setTokenRoyalties([[1, another1, 1]]), "Ownable: caller is not the owner");
+      await truffleAssert.reverts(override.setDefaultRoyalty([another1, 1]), "Ownable: caller is not the owner");
     });
 
     it('test', async function () {
@@ -49,12 +49,12 @@ contract('Registry', function ([...accounts]) {
       assert.equal(result[0], "0x0000000000000000000000000000000000000000");
       assert.equal(result[1], 0);
 
-      await override.setTokenRoyalty(1, another1, 100, {from:admin});
+      await override.setTokenRoyalties([[1, another1, 100]], {from:admin});
       result = await override.royaltyInfo(1, value);
       assert.equal(result[0], another1);
       assert.equal(result[1], value*100/10000);
 
-      await override.setDefaultRoyalty(another2, 200, {from:admin});
+      await override.setDefaultRoyalty([another2, 200], {from:admin});
       result = await override.royaltyInfo(1, value);
       assert.equal(result[0], another1);
       assert.equal(result[1], value*100/10000);
@@ -77,16 +77,19 @@ contract('Registry', function ([...accounts]) {
       var tx = await overrideFactory.createOverride({from:admin});
       console.log("Create override gas used: %s", tx.receipt.gasUsed);
       var clone = await EIP2981RoyaltyOverride.at(tx.logs[0].args.newEIP2981RoyaltyOverride);
-      await clone.setTokenRoyalty(3, another3, 300, {from:admin});
+      await clone.setTokenRoyalties([[3, another3, 300], [5, another5, 500]], {from:admin});
       result = await clone.royaltyInfo(3, value);
       assert.equal(result[0], another3);
       assert.equal(result[1], value*300/10000);
+      result = await clone.royaltyInfo(5, value);
+      assert.equal(result[0], another5);
+      assert.equal(result[1], value*500/10000);
 
-      await clone.setDefaultRoyalty(another4, 400, {from:admin});
+      await clone.setDefaultRoyalty([another4, 400], {from:admin});
       result = await clone.royaltyInfo(3, value);
       assert.equal(result[0], another3);
       assert.equal(result[1], value*300/10000);
-      result = await clone.royaltyInfo(4, value);
+      result = await clone.royaltyInfo(1, value);
       assert.equal(result[0], another4);
       assert.equal(result[1], value*400/10000);
 
@@ -96,12 +99,26 @@ contract('Registry', function ([...accounts]) {
       assert.equal(result[0][0], another3);
       assert.equal(result[1].length, 1);
       assert.deepEqual(result[1][0], web3.utils.toBN(value*300/10000));
-      result = await engine.getRoyaltyView(mockContract.address, 4, value);
+      result = await engine.getRoyaltyView(mockContract.address, 1, value);
       assert.equal(result[0].length, 1);
       assert.equal(result[0][0], another4);
       assert.equal(result[1].length, 1);
       assert.deepEqual(result[1][0], web3.utils.toBN(value*400/10000));
+      result = await engine.getRoyaltyView(mockContract.address, 5, value);
+      assert.equal(result[0].length, 1);
+      assert.equal(result[0][0], another5);
+      assert.equal(result[1].length, 1);
+      assert.deepEqual(result[1][0], web3.utils.toBN(value*500/10000));
+      assert.equal(2, await clone.getTokenRoyaltiesCount());
 
+      // Test per token deletion, will go back to default
+      await clone.setTokenRoyalties([[5, '0x0000000000000000000000000000000000000000', 0]], {from:admin})
+      result = await engine.getRoyaltyView(mockContract.address, 5, value);
+      assert.equal(result[0].length, 1);
+      assert.equal(result[0][0], another4);
+      assert.equal(result[1].length, 1);
+      assert.deepEqual(result[1][0], web3.utils.toBN(value*400/10000));
+      assert.equal(1, await clone.getTokenRoyaltiesCount())
     });
 
   });

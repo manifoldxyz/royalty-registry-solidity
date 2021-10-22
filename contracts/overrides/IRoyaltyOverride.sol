@@ -11,8 +11,39 @@ import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
  */
 interface IEIP2981RoyaltyOverride is IERC165 {
 
-    function setTokenRoyalty(uint256 tokenId, address recipient, uint16 bps) external;
+    event TokenRoyaltyRemoved(uint256 tokenId);
+    event TokenRoyaltySet(uint256 tokenId, address recipient, uint16 bps);
+    event DefaultRoyaltySet(address recipient, uint16 bps);
 
-    function setDefaultRoyalty(address recipient, uint16 bps) external;
+    struct TokenRoyalty {
+        address recipient;
+        uint16 bps;
+    }
+
+    struct TokenRoyaltyConfig {
+        uint256 tokenId;
+        address recipient;
+        uint16 bps;
+    }
+
+    /**
+     * @dev Set per token royalties.  Passing a recipient of address(0) will delete any existing configuration
+     */
+    function setTokenRoyalties(TokenRoyaltyConfig[] memory royalties) external;
+
+    /**
+     * @dev Get the number of token specific overrides.  Used to enumerate over all configurations
+     */
+    function getTokenRoyaltiesCount() external view returns(uint256);
+
+    /**
+     * @dev Get a token royalty configuration by index.  Use in conjunction with getTokenRoyaltiesCount to get all per token configurations
+     */
+    function getTokenRoyaltyByIndex(uint256 index) external view returns(TokenRoyalty memory);
+
+    /**
+     * @dev Set a default royalty configuration.  Will be used if no token specific configuration is set
+     */
+    function setDefaultRoyalty(TokenRoyalty memory royalty) external;
 
 }
