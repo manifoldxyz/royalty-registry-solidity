@@ -42,6 +42,9 @@ contract('Registry', function ([...accounts]) {
     });
 
     it('test', async function () {
+      // Check override interface
+      assert.equal(await override.supportsInterface("0xc69dbd8f"), true);
+
       engine = await deployProxy(RoyaltyEngineV1, [registry.address], {initializer: "initialize", from:owner});
       let value = 1000;
 

@@ -29,7 +29,7 @@ interface IEIP2981RoyaltyOverride is IERC165 {
     /**
      * @dev Set per token royalties.  Passing a recipient of address(0) will delete any existing configuration
      */
-    function setTokenRoyalties(TokenRoyaltyConfig[] memory royalties) external;
+    function setTokenRoyalties(TokenRoyaltyConfig[] calldata royalties) external;
 
     /**
      * @dev Get the number of token specific overrides.  Used to enumerate over all configurations
@@ -44,6 +44,6 @@ interface IEIP2981RoyaltyOverride is IERC165 {
     /**
      * @dev Set a default royalty configuration.  Will be used if no token specific configuration is set
      */
-    function setDefaultRoyalty(TokenRoyalty memory royalty) external;
+    function setDefaultRoyalty(TokenRoyalty calldata royalty) external;
 
 }

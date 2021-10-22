@@ -5,13 +5,20 @@ pragma solidity ^0.8.0;
 /// @author: manifold.xyz
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
-import "./RoyaltyOverrideCore.sol";
+import "../RoyaltyOverrideCore.sol";
 
 /**
- * Simple EIP2981 reference override implementation
+ * Reference implementation of ERC721 with EIP2981 support
  */
-contract EIP2981RoyaltyOverride is EIP2981RoyaltyOverrideCore, Ownable {
+contract ERC721WithEIP2981 is ERC721, EIP2981RoyaltyOverrideCore, Ownable {
+
+    constructor(string memory name_, string memory symbol_) ERC721(name_, symbol_) {}
+
+    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721, EIP2981RoyaltyOverrideCore) returns (bool) {
+        return ERC721.supportsInterface(interfaceId) || EIP2981RoyaltyOverrideCore.supportsInterface(interfaceId);
+    }
 
     /**
      * @dev See {IEIP2981RoyaltyOverride-setTokenRoyalties}.
@@ -26,4 +33,6 @@ contract EIP2981RoyaltyOverride is EIP2981RoyaltyOverrideCore, Ownable {
     function setDefaultRoyalty(TokenRoyalty calldata royalty) external override onlyOwner {
         _setDefaultRoyalty(royalty);
     }
+
+
 }
