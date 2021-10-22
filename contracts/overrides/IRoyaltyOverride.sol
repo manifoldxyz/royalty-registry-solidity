@@ -39,7 +39,7 @@ interface IEIP2981RoyaltyOverride is IERC165 {
     /**
      * @dev Get a token royalty configuration by index.  Use in conjunction with getTokenRoyaltiesCount to get all per token configurations
      */
-    function getTokenRoyaltyByIndex(uint256 index) external view returns(TokenRoyalty memory);
+    function getTokenRoyaltyByIndex(uint256 index) external view returns(TokenRoyaltyConfig memory);
 
     /**
      * @dev Set a default royalty configuration.  Will be used if no token specific configuration is set

@@ -45,8 +45,10 @@ contract EIP2981RoyaltyOverride is IEIP2981, IEIP2981RoyaltyOverride, Ownable, E
         return _tokensWithRoyalties.length();
     }
 
-    function getTokenRoyaltyByIndex(uint256 index) external override view returns(TokenRoyalty memory) {
-        return _tokenRoyalties[_tokensWithRoyalties.at(index)];
+    function getTokenRoyaltyByIndex(uint256 index) external override view returns(TokenRoyaltyConfig memory) {
+        uint256 tokenId = _tokensWithRoyalties.at(index);
+        TokenRoyalty memory royalty = _tokenRoyalties[tokenId];
+        return TokenRoyaltyConfig(tokenId, royalty.recipient, royalty.bps);
     }
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165, IERC165) returns (bool) {
