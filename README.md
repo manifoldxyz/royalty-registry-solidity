@@ -6,6 +6,7 @@ The Royalty Registry is located at royaltyregistry.eth (0xad2184fb5dbcfc05d8f056
 Royalty Engine V1 is located at engine-v1.royaltyregistry.eth (0x8d17687ea9a6bb6efA24ec11DcFab01661b2ddcd) on the Ethereum mainnet.
 
 https://royaltyregistry.xyz is a Web3 DApp which makes on-chain royalty lookups and override configurations easy.
+
 The open-source code can be found at:
 https://github.com/manifoldxyz/royalty-registry-client
 
