@@ -5,13 +5,14 @@ pragma solidity ^0.8.0;
 /// @author: manifold.xyz
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC1155/presets/ERC1155PresetMinterPauser.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
 import "../specs/IManifold.sol";
 import "../specs/IRarible.sol";
 import "../specs/IFoundation.sol";
 import "../specs/IEIP2981.sol";
-
+import "../specs/INiftyGateway.sol";
 import "../IRoyaltyEngineV1.sol";
 
 /**
@@ -19,7 +20,6 @@ import "../IRoyaltyEngineV1.sol";
  */
 contract MockContract is Ownable {
 }
-
 
 /**
  * Base template for royalty
@@ -140,6 +140,41 @@ contract MockEIP2981 is IEIP2981, MockRoyalty, ERC165 {
     }
 }
 
+/**
+ * Nifty Gateway Mocks
+ */
+contract MockNiftyBuilder is INiftyBuilderInstance {
+    address private _builderAddress;
+
+    constructor(address builderAddress) {
+        _builderAddress = builderAddress;
+    }
+
+     function niftyRegistryContract() external view override returns (address) {
+         return _builderAddress;
+     }
+}
+
+contract MockNiftyRegistry is INiftyRegistry {
+    address private _approvedAddress;
+
+    constructor(address approvedAddress) {
+        _approvedAddress = approvedAddress;
+    }
+
+    function isValidNiftySender(address sending_key) external view override returns (bool) {
+        return sending_key == _approvedAddress;
+    }
+}
+
+/**
+ * Mock ERC1155PresetMinterPauser
+ */
+contract MockERC1155PresetMinterPauser is ERC1155PresetMinterPauser {
+
+    constructor() ERC1155PresetMinterPauser("") {}
+
+}
 
 /**
  * Simulate payment

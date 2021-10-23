@@ -23,8 +23,12 @@ The Royalty Registry is comprised of two components.
 ### 1. Royalty Registry
 This is the central contract to be used for determining what address should be used for royalty lookup given a token address.
 The reason that this registry is necessary is to provide backwards compatability with contracts created prior to any on-chain royalty specs.
-It provides the ability for these contracts to set up an on-chain royalty override (as long as they support the Ownable implementation).
-Override permissions should be expanded in the future for those that do not implement Ownable or aren't platform controlled contracts.
+It provides the ability for these contracts to set up an on-chain royalty override with support for:
+- @openzeppelin Ownable
+- @openzepplin AccessControl (DEFAULT_ADMIN_ROLE)
+- @manifoldxyz AdminControl https://github.com/manifoldxyz/libraries-solidity/tree/main/contracts/access
+
+Override permissions can be expanded in the future by the community.
 
 Overrides are emitted as events so that any other systems that want to cache this data can do so.
 
