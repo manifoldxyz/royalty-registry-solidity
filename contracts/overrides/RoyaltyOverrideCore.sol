@@ -31,6 +31,7 @@ abstract contract EIP2981RoyaltyOverrideCore is IEIP2981, IEIP2981RoyaltyOverrid
     function _setTokenRoyalties(TokenRoyaltyConfig[] memory royaltyConfigs) internal {
         for (uint i = 0; i < royaltyConfigs.length; i++) {
             TokenRoyaltyConfig memory royaltyConfig = royaltyConfigs[i];
+            require(royaltyConfig.bps < 10000, "Invalid bps");
             if (royaltyConfig.recipient == address(0)) {
                 delete _tokenRoyalties[royaltyConfig.tokenId];
                 _tokensWithRoyalties.remove(royaltyConfig.tokenId);
@@ -48,6 +49,7 @@ abstract contract EIP2981RoyaltyOverrideCore is IEIP2981, IEIP2981RoyaltyOverrid
      * ensure that you access restrict it to the contract owner or admin
      */
     function _setDefaultRoyalty(TokenRoyalty memory royalty) internal {
+        require(royalty.bps < 10000, "Invalid bps");
         defaultRoyalty = TokenRoyalty(royalty.recipient, royalty.bps);
         emit DefaultRoyaltySet(royalty.recipient, royalty.bps);
     }

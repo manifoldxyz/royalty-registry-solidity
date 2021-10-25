@@ -45,6 +45,9 @@ contract('Registry', function ([...accounts]) {
       // Check override interface
       assert.equal(await override.supportsInterface("0xc69dbd8f"), true);
 
+      await truffleAssert.reverts(override.setTokenRoyalties([[1, another1, 10000]], {from:admin}), "Invalid bps");
+      await truffleAssert.reverts(override.setDefaultRoyalty([another1, 10000], {from:admin}), "Invalid bps");
+
       engine = await deployProxy(RoyaltyEngineV1, [registry.address], {initializer: "initialize", from:owner});
       let value = 1000;
 
