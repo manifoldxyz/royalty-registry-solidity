@@ -13,6 +13,7 @@ import "../specs/IRarible.sol";
 import "../specs/IFoundation.sol";
 import "../specs/IEIP2981.sol";
 import "../specs/INiftyGateway.sol";
+import "../specs/IDigitalax.sol";
 import "../IRoyaltyEngineV1.sol";
 
 /**
@@ -164,6 +165,29 @@ contract MockNiftyRegistry is INiftyRegistry {
 
     function isValidNiftySender(address sending_key) external view override returns (bool) {
         return sending_key == _approvedAddress;
+    }
+}
+
+contract MockDigitalaxNFT is IDigitalax {
+    address private externalAccessControls;
+    function accessControls() external view override returns (address){
+        return externalAccessControls;
+    }
+
+    constructor(address _accessControls) {
+        externalAccessControls = _accessControls;
+    }
+}
+
+contract MockDigitalaxAccessControls is IDigitalaxAccessControls {
+    address private _approvedAddress;
+
+    constructor(address approvedAddress) {
+        _approvedAddress = approvedAddress;
+    }
+
+    function hasAdminRole(address _account) external view override returns (bool){
+        return _account == _approvedAddress;
     }
 }
 

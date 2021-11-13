@@ -13,6 +13,8 @@ const MockEIP2981 = artifacts.require("MockEIP2981");
 const MockRoyaltyPayer = artifacts.require("MockRoyaltyPayer");
 const MockNiftyBuilder = artifacts.require("MockNiftyBuilder");
 const MockNiftyRegistry = artifacts.require("MockNiftyRegistry");
+const MockDigitalaxNFT = artifacts.require("MockDigitalaxNFT");
+const MockDigitalaxAccessControls = artifacts.require("MockDigitalaxAccessControls");
 const MockERC1155PresetMinterPauser = artifacts.require("MockERC1155PresetMinterPauser");
 
 contract('Registry', function ([...accounts]) {
@@ -42,6 +44,8 @@ contract('Registry', function ([...accounts]) {
     var mockEIP2981;
     var mockRoyaltyPayer;
     var mockNiftyRegistry;
+    var mockDigitalaxNFT;
+    var mockDigitalaxAccessControls;
     var mockNiftyBuilder;
     var mockERC1155PresetMinterPauser;
 
@@ -59,6 +63,8 @@ contract('Registry', function ([...accounts]) {
       mockRoyaltyPayer = await MockRoyaltyPayer.new();
       mockNiftyRegistry = await MockNiftyRegistry.new(niftyDeployer);
       mockNiftyBuilder = await MockNiftyBuilder.new(mockNiftyRegistry.address);
+      mockDigitalaxAccessControls = await MockDigitalaxAccessControls.new(owner, {from: owner});
+      mockDigitalaxNFT = await MockDigitalaxNFT.new(mockDigitalaxAccessControls.address, {from: owner});
       mockERC1155PresetMinterPauser = await MockERC1155PresetMinterPauser.new({from: erc1155PresetDeployer});
     });
 
@@ -80,6 +86,7 @@ contract('Registry', function ([...accounts]) {
       assert.equal(false, await registry.overrideAllowed(mockRaribleV2.address, {from:random}));
       assert.equal(false, await registry.overrideAllowed(mockEIP2981.address, {from:random}));
       assert.equal(false, await registry.overrideAllowed(mockNiftyBuilder.address, {from:random}));
+      assert.equal(false, await registry.overrideAllowed(mockDigitalaxNFT.address, {from:random}));
       assert.equal(false, await registry.overrideAllowed(mockERC1155PresetMinterPauser.address, {from:random}));
 
       assert.equal(true, await registry.overrideAllowed(mockManifold.address, {from:manifoldDeployer}));
@@ -88,6 +95,7 @@ contract('Registry', function ([...accounts]) {
       assert.equal(true, await registry.overrideAllowed(mockRaribleV2.address, {from:raribleV2Deployer}));
       assert.equal(true, await registry.overrideAllowed(mockEIP2981.address, {from:eip2981Deployer}));
       assert.equal(true, await registry.overrideAllowed(mockNiftyBuilder.address, {from:niftyDeployer}));
+      assert.equal(true, await registry.overrideAllowed(mockDigitalaxNFT.address, {from:owner}));
       assert.equal(true, await registry.overrideAllowed(mockERC1155PresetMinterPauser.address, {from:erc1155PresetDeployer}));
     })
 
