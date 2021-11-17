@@ -14,6 +14,7 @@ import "@manifoldxyz/libraries-solidity/contracts/access/IAdminControl.sol";
 import "./IRoyaltyRegistry.sol";
 import "./specs/INiftyGateway.sol";
 import "./specs/IFoundation.sol";
+import "./specs/IDigitalax.sol";
 
 /**
  * @dev Registry to lookup royalty configurations
@@ -71,6 +72,12 @@ contract RoyaltyRegistry is ERC165, OwnableUpgradeable, IRoyaltyRegistry {
 
         try IAccessControlUpgradeable(tokenAddress).hasRole(0x00, _msgSender()) returns (bool hasRole) {
             if (hasRole) return true;
+        } catch {}
+
+        try IDigitalax(tokenAddress).accessControls() returns (address externalAccessControls){
+            try IDigitalaxAccessControls(externalAccessControls).hasAdminRole(_msgSender()) returns (bool hasRole) {
+                if (hasRole) return true;
+            } catch {}
         } catch {}
 
         // Nifty Gateway overrides
