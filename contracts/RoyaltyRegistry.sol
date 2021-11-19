@@ -14,6 +14,7 @@ import "@manifoldxyz/libraries-solidity/contracts/access/IAdminControl.sol";
 import "./IRoyaltyRegistry.sol";
 import "./specs/INiftyGateway.sol";
 import "./specs/IFoundation.sol";
+import "./specs/IArtBlocks.sol";
 
 /**
  * @dev Registry to lookup royalty configurations
@@ -59,9 +60,14 @@ contract RoyaltyRegistry is ERC165, OwnableUpgradeable, IRoyaltyRegistry {
      */
     function overrideAllowed(address tokenAddress) public view override returns(bool) {
         if (owner() == _msgSender()) return true;
-        
+
         if (ERC165Checker.supportsInterface(tokenAddress, type(IAdminControl).interfaceId)
             && IAdminControl(tokenAddress).isAdmin(_msgSender())) {
+            return true;
+        }
+
+        if (ERC165Checker.supportsInterface(tokenAddress, type(IArtBlocks).interfaceId)
+            && IArtBlocks(tokenAddress).admin == _msgSender()) {
             return true;
         }
 
