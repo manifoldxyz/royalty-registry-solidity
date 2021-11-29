@@ -27,6 +27,7 @@ contract('Registry', function ([...accounts]) {
     raribleV2Deployer,
     eip2981Deployer,
     niftyDeployer,
+    artBlocksDeployer,
     erc1155PresetDeployer,
   ] = accounts;
 
@@ -61,7 +62,7 @@ contract('Registry', function ([...accounts]) {
       mockRoyaltyPayer = await MockRoyaltyPayer.new();
       mockNiftyRegistry = await MockNiftyRegistry.new(niftyDeployer);
       mockNiftyBuilder = await MockNiftyBuilder.new(mockNiftyRegistry.address);
-      mockArtBlocks = await MockArtBlocks.new({from: defaultDeployer});
+      mockArtBlocks = await MockArtBlocks.new({from: artBlocksDeployer});
       mockERC1155PresetMinterPauser = await MockERC1155PresetMinterPauser.new({from: erc1155PresetDeployer});
     });
 
@@ -92,7 +93,7 @@ contract('Registry', function ([...accounts]) {
       assert.equal(true, await registry.overrideAllowed(mockRaribleV2.address, {from:raribleV2Deployer}));
       assert.equal(true, await registry.overrideAllowed(mockEIP2981.address, {from:eip2981Deployer}));
       assert.equal(true, await registry.overrideAllowed(mockNiftyBuilder.address, {from:niftyDeployer}));
-      assert.equal(true, await registry.overrideAllowed(mockArtBlocks.address, {from:defaultDeployer}));
+      assert.equal(true, await registry.overrideAllowed(mockArtBlocks.address, {from:artBlocksDeployer}));
       assert.equal(true, await registry.overrideAllowed(mockERC1155PresetMinterPauser.address, {from:erc1155PresetDeployer}));
     })
 
