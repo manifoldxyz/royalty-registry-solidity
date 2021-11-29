@@ -66,11 +66,6 @@ contract RoyaltyRegistry is ERC165, OwnableUpgradeable, IRoyaltyRegistry {
             return true;
         }
 
-        if (ERC165Checker.supportsInterface(tokenAddress, type(IArtBlocks).interfaceId)
-            && IArtBlocks(tokenAddress).admin == _msgSender()) {
-            return true;
-        }
-
         try OwnableUpgradeable(tokenAddress).owner() returns (address owner) {
             if (owner == _msgSender()) return true;
         } catch {}
@@ -94,6 +89,11 @@ contract RoyaltyRegistry is ERC165, OwnableUpgradeable, IRoyaltyRegistry {
             try IFoundationTreasury(foundationTreasury).isAdmin(_msgSender()) returns (bool isAdmin) {
                 return isAdmin;
             } catch {}
+        } catch {}
+
+        // Art Blocks overrides
+        try IArtBlocks(tokenAddress).admin() returns (address admin) {
+            if (admin == _msgSender()) return true;
         } catch {}
 
         // Superrare overrides

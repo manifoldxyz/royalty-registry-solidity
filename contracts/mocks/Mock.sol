@@ -13,6 +13,7 @@ import "../specs/IRarible.sol";
 import "../specs/IFoundation.sol";
 import "../specs/IEIP2981.sol";
 import "../specs/INiftyGateway.sol";
+import "../specs/IArtBlocks.sol";
 import "../IRoyaltyEngineV1.sol";
 
 /**
@@ -171,10 +172,10 @@ contract MockNiftyRegistry is INiftyRegistry {
  * Art Blocks Mocks
  */
  contract MockArtBlocks is IArtBlocks {
-     address public admin;
+     address public override admin;
 
      constructor() {
-         admin = _msgSender();
+         admin = msg.sender;
      }
  }
 
