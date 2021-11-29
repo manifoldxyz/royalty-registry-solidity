@@ -116,3 +116,12 @@ See ```contracts/overrides/RoyaltyOverrideCore.sol``` if you would like to inher
 
 See ```contracts/token/ERC721.sol``` and ```contracts/token/ERC1155.sol``` for reference ERC721 and ERC1155 reference implementations.
 
+## Contributions
+
+All contributions should come with accompanying test coverage.
+
+### Installing Dependencies
+`npm install`
+
+### Running The Tests
+`npm test`
