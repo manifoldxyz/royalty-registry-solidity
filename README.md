@@ -124,4 +124,11 @@ All contributions should come with accompanying test coverage.
 `npm install`
 
 ### Running The Tests
+
+Start development network (in separate terminal):
+
+`npm run test:start-network`
+
+Run tests:
+
 `npm test`

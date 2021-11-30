@@ -15,6 +15,7 @@ const MockNiftyBuilder = artifacts.require("MockNiftyBuilder");
 const MockNiftyRegistry = artifacts.require("MockNiftyRegistry");
 const MockDigitalaxNFT = artifacts.require("MockDigitalaxNFT");
 const MockDigitalaxAccessControls = artifacts.require("MockDigitalaxAccessControls");
+const MockArtBlocks = artifacts.require("MockArtBlocks");
 const MockERC1155PresetMinterPauser = artifacts.require("MockERC1155PresetMinterPauser");
 
 contract('Registry', function ([...accounts]) {
@@ -28,6 +29,7 @@ contract('Registry', function ([...accounts]) {
     raribleV2Deployer,
     eip2981Deployer,
     niftyDeployer,
+    artBlocksDeployer,
     erc1155PresetDeployer,
   ] = accounts;
 
@@ -47,6 +49,7 @@ contract('Registry', function ([...accounts]) {
     var mockDigitalaxNFT;
     var mockDigitalaxAccessControls;
     var mockNiftyBuilder;
+    var mockArtBlocks;
     var mockERC1155PresetMinterPauser;
 
     beforeEach(async function () {
@@ -65,6 +68,7 @@ contract('Registry', function ([...accounts]) {
       mockNiftyBuilder = await MockNiftyBuilder.new(mockNiftyRegistry.address);
       mockDigitalaxAccessControls = await MockDigitalaxAccessControls.new(owner, {from: owner});
       mockDigitalaxNFT = await MockDigitalaxNFT.new(mockDigitalaxAccessControls.address, {from: owner});
+      mockArtBlocks = await MockArtBlocks.new({from: artBlocksDeployer});
       mockERC1155PresetMinterPauser = await MockERC1155PresetMinterPauser.new({from: erc1155PresetDeployer});
     });
 
@@ -87,6 +91,7 @@ contract('Registry', function ([...accounts]) {
       assert.equal(false, await registry.overrideAllowed(mockEIP2981.address, {from:random}));
       assert.equal(false, await registry.overrideAllowed(mockNiftyBuilder.address, {from:random}));
       assert.equal(false, await registry.overrideAllowed(mockDigitalaxNFT.address, {from:random}));
+      assert.equal(false, await registry.overrideAllowed(mockArtBlocks.address, {from:random}));
       assert.equal(false, await registry.overrideAllowed(mockERC1155PresetMinterPauser.address, {from:random}));
 
       assert.equal(true, await registry.overrideAllowed(mockManifold.address, {from:manifoldDeployer}));
@@ -96,6 +101,7 @@ contract('Registry', function ([...accounts]) {
       assert.equal(true, await registry.overrideAllowed(mockEIP2981.address, {from:eip2981Deployer}));
       assert.equal(true, await registry.overrideAllowed(mockNiftyBuilder.address, {from:niftyDeployer}));
       assert.equal(true, await registry.overrideAllowed(mockDigitalaxNFT.address, {from:owner}));
+      assert.equal(true, await registry.overrideAllowed(mockArtBlocks.address, {from:artBlocksDeployer}));
       assert.equal(true, await registry.overrideAllowed(mockERC1155PresetMinterPauser.address, {from:erc1155PresetDeployer}));
     })
 
@@ -131,7 +137,7 @@ contract('Registry', function ([...accounts]) {
       assert.equal(result[0][0], manifoldDeployer);
       assert.deepEqual(result[1][0], web3.utils.toBN(value*manifoldBps/10000));
       assert.equal(result[0][1], random);
-      assert.deepEqual(result[1][1], web3.utils.toBN(value*randomBps/10000));  
+      assert.deepEqual(result[1][1], web3.utils.toBN(value*randomBps/10000));
 
       result = await engine.getRoyaltyView(mockFoundation.address, foundationTokenId, value);
       assert.equal(result[0].length, 2);
@@ -139,23 +145,23 @@ contract('Registry', function ([...accounts]) {
       assert.equal(result[0][0], foundationDeployer);
       assert.deepEqual(result[1][0], web3.utils.toBN(value*foundationBps/10000));
       assert.equal(result[0][1], random);
-      assert.deepEqual(result[1][1], web3.utils.toBN(value*randomBps/10000));  
-        
+      assert.deepEqual(result[1][1], web3.utils.toBN(value*randomBps/10000));
+
       result = await engine.getRoyaltyView(mockRaribleV1.address, raribleV1TokenId, value);
       assert.equal(result[0].length, 2);
       assert.equal(result[1].length, 2);
       assert.equal(result[0][0], raribleV1Deployer);
       assert.deepEqual(result[1][0], web3.utils.toBN(value*raribleV1Bps/10000));
       assert.equal(result[0][1], random);
-      assert.deepEqual(result[1][1], web3.utils.toBN(value*randomBps/10000));  
-        
+      assert.deepEqual(result[1][1], web3.utils.toBN(value*randomBps/10000));
+
       result = await engine.getRoyaltyView(mockRaribleV2.address, raribleV2TokenId, value);
       assert.equal(result[0].length, 2);
       assert.equal(result[1].length, 2);
       assert.equal(result[0][0], raribleV2Deployer);
       assert.deepEqual(result[1][0], web3.utils.toBN(value*raribleV2Bps/10000));
       assert.equal(result[0][1], random);
-      assert.deepEqual(result[1][1], web3.utils.toBN(value*randomBps/10000));  
+      assert.deepEqual(result[1][1], web3.utils.toBN(value*randomBps/10000));
 
 
       await mockManifold.setRoyalties(manifoldTokenId, [manifoldDeployer], [manifoldBps]);
@@ -173,25 +179,25 @@ contract('Registry', function ([...accounts]) {
       assert.equal(result[1].length, 1);
       assert.equal(result[0][0], manifoldDeployer);
       assert.deepEqual(result[1][0], web3.utils.toBN(value*manifoldBps/10000));
-        
+
       result = await engine.getRoyaltyView(mockFoundation.address, foundationTokenId, value);
       assert.equal(result[0].length, 1);
       assert.equal(result[1].length, 1);
       assert.equal(result[0][0], foundationDeployer);
       assert.deepEqual(result[1][0], web3.utils.toBN(value*foundationBps/10000));
-        
+
       result = await engine.getRoyaltyView(mockRaribleV1.address, raribleV1TokenId, value);
       assert.equal(result[0].length, 1);
       assert.equal(result[1].length, 1);
       assert.equal(result[0][0], raribleV1Deployer);
       assert.deepEqual(result[1][0], web3.utils.toBN(value*raribleV1Bps/10000));
-        
+
       result = await engine.getRoyaltyView(mockRaribleV2.address, raribleV2TokenId, value);
       assert.equal(result[0].length, 1);
       assert.equal(result[1].length, 1);
       assert.equal(result[0][0], raribleV2Deployer);
       assert.deepEqual(result[1][0], web3.utils.toBN(value*raribleV2Bps/10000));
-        
+
       result = await engine.getRoyaltyView(mockEIP2981.address, eip2981TokenId, value);
       assert.equal(result[0].length, 1);
       assert.equal(result[1].length, 1);
@@ -295,7 +301,7 @@ contract('Registry', function ([...accounts]) {
 
       var value = 10000;
 
-      await truffleAssert.reverts(engine.getRoyaltyView(mockManifold.address, manifoldTokenId, value), "Invalid royalty amount");     
+      await truffleAssert.reverts(engine.getRoyaltyView(mockManifold.address, manifoldTokenId, value), "Invalid royalty amount");
       await truffleAssert.reverts(engine.getRoyaltyView(mockFoundation.address, foundationTokenId, value), "Invalid royalty amount");
       await truffleAssert.reverts(engine.getRoyaltyView(mockRaribleV1.address, raribleV1TokenId, value), "Invalid royalty amount");
       await truffleAssert.reverts(engine.getRoyaltyView(mockRaribleV2.address, raribleV2TokenId, value), "Invalid royalty amount");
@@ -337,7 +343,7 @@ contract('Registry', function ([...accounts]) {
       await mockRaribleV2.setRoyalties(raribleV2TokenId, [raribleV2Deployer], [10000]);
       await mockEIP2981.setRoyalties(eip2981TokenId, [eip2981Deployer], [10000]);
 
-      await truffleAssert.reverts(engine.getRoyaltyView(mockManifold.address, manifoldTokenId, value), "Invalid royalty amount");     
+      await truffleAssert.reverts(engine.getRoyaltyView(mockManifold.address, manifoldTokenId, value), "Invalid royalty amount");
       await truffleAssert.reverts(engine.getRoyaltyView(mockFoundation.address, foundationTokenId, value), "Invalid royalty amount");
       await truffleAssert.reverts(engine.getRoyaltyView(mockRaribleV1.address, raribleV1TokenId, value), "Invalid royalty amount");
       await truffleAssert.reverts(engine.getRoyaltyView(mockRaribleV2.address, raribleV2TokenId, value), "Invalid royalty amount");

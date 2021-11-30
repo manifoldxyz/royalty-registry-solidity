@@ -15,6 +15,7 @@ import "./IRoyaltyRegistry.sol";
 import "./specs/INiftyGateway.sol";
 import "./specs/IFoundation.sol";
 import "./specs/IDigitalax.sol";
+import "./specs/IArtBlocks.sol";
 
 /**
  * @dev Registry to lookup royalty configurations
@@ -60,7 +61,7 @@ contract RoyaltyRegistry is ERC165, OwnableUpgradeable, IRoyaltyRegistry {
      */
     function overrideAllowed(address tokenAddress) public view override returns(bool) {
         if (owner() == _msgSender()) return true;
-        
+
         if (ERC165Checker.supportsInterface(tokenAddress, type(IAdminControl).interfaceId)
             && IAdminControl(tokenAddress).isAdmin(_msgSender())) {
             return true;
@@ -96,6 +97,11 @@ contract RoyaltyRegistry is ERC165, OwnableUpgradeable, IRoyaltyRegistry {
             try IDigitalaxAccessControls(externalAccessControls).hasAdminRole(_msgSender()) returns (bool hasRole) {
                 if (hasRole) return true;
             } catch {}
+        } catch {}
+
+        // Art Blocks overrides
+        try IArtBlocks(tokenAddress).admin() returns (address admin) {
+            if (admin == _msgSender()) return true;
         } catch {}
 
         // Superrare overrides

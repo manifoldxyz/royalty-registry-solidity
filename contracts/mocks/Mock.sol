@@ -14,6 +14,7 @@ import "../specs/IFoundation.sol";
 import "../specs/IEIP2981.sol";
 import "../specs/INiftyGateway.sol";
 import "../specs/IDigitalax.sol";
+import "../specs/IArtBlocks.sol";
 import "../IRoyaltyEngineV1.sol";
 
 /**
@@ -28,7 +29,7 @@ contract MockContract is Ownable {
 contract MockRoyalty is Ownable {
     mapping(uint256 => address payable[]) internal _receivers;
     mapping(uint256 => uint256[]) internal _bps;
-    
+
     function setRoyalties(uint256 tokenId, address payable[] calldata receivers, uint256[] calldata bps) public {
         require(receivers.length == bps.length);
         _receivers[tokenId] = receivers;
@@ -40,14 +41,14 @@ contract MockRoyalty is Ownable {
  * Implements Manifold interface
  */
 contract MockManifold is IManifold, MockRoyalty, ERC165 {
-    
+
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165) returns (bool) {
         return interfaceId == type(IManifold).interfaceId || super.supportsInterface(interfaceId);
     }
 
     function getRoyalties(uint256 tokenId) public override view returns (address payable[] memory, uint256[] memory) {
         return (_receivers[tokenId], _bps[tokenId]);
-    }   
+    }
 
 }
 
@@ -56,7 +57,7 @@ contract MockManifold is IManifold, MockRoyalty, ERC165 {
  */
 contract MockFoundation is IFoundation, IFoundationTreasuryNode, MockRoyalty, ERC165 {
 
-    address payable private _foundationTreasury;    
+    address payable private _foundationTreasury;
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165) returns (bool) {
         return interfaceId == type(IFoundation).interfaceId || super.supportsInterface(interfaceId);
@@ -92,18 +93,18 @@ contract MockFoundationTreasury is IFoundationTreasury {
  * Implements RaribleV1 interface
  */
 contract MockRaribleV1 is IRaribleV1, MockRoyalty, ERC165 {
-    
+
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165) returns (bool) {
         return interfaceId == type(IRaribleV1).interfaceId || super.supportsInterface(interfaceId);
     }
 
     function getFeeBps(uint256 tokenId) public override view returns (uint[] memory) {
         return _bps[tokenId];
-    }   
+    }
 
     function getFeeRecipients(uint256 tokenId) public override view returns (address payable[] memory) {
         return _receivers[tokenId];
-    }   
+    }
 
 }
 
@@ -111,7 +112,7 @@ contract MockRaribleV1 is IRaribleV1, MockRoyalty, ERC165 {
  * Implements RaribleV2 interface
  */
 contract MockRaribleV2 is IRaribleV2, MockRoyalty, ERC165 {
-    
+
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165) returns (bool) {
         return interfaceId == type(IRaribleV2).interfaceId || super.supportsInterface(interfaceId);
     }
@@ -122,7 +123,7 @@ contract MockRaribleV2 is IRaribleV2, MockRoyalty, ERC165 {
             royalties[i] = Part(_receivers[tokenId][i], uint96(_bps[tokenId][i]));
         }
         return royalties;
-    }   
+    }
 
 }
 
@@ -130,7 +131,7 @@ contract MockRaribleV2 is IRaribleV2, MockRoyalty, ERC165 {
  * Implements EIP2981 interface
  */
 contract MockEIP2981 is IEIP2981, MockRoyalty, ERC165 {
-    
+
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165) returns (bool) {
         return interfaceId == type(IEIP2981).interfaceId || super.supportsInterface(interfaceId);
     }
@@ -179,6 +180,9 @@ contract MockDigitalaxNFT is IDigitalax {
     }
 }
 
+/**
+ * DigitalAx Mocks
+ */
 contract MockDigitalaxAccessControls is IDigitalaxAccessControls {
     address private _approvedAddress;
 
@@ -190,6 +194,18 @@ contract MockDigitalaxAccessControls is IDigitalaxAccessControls {
         return _account == _approvedAddress;
     }
 }
+
+/**
+ * Art Blocks Mocks
+ */
+ contract MockArtBlocks is IArtBlocks {
+     address public override admin;
+
+     constructor() {
+         admin = msg.sender;
+     }
+ }
+
 
 /**
  * Mock ERC1155PresetMinterPauser
@@ -205,7 +221,7 @@ contract MockERC1155PresetMinterPauser is ERC1155PresetMinterPauser {
  */
 contract MockRoyaltyPayer {
     function deposit() public payable {
-        
+
     }
 
     function payout(address royaltyEngine, address tokenAddress, uint256 tokenId, uint256 saleAmount) public {
