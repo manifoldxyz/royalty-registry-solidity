@@ -9,3 +9,7 @@ interface IArtBlocks {
    // document getter function of public variable
    function admin() external view returns (address);
 }
+
+interface IArtBlocksOverride {
+   function getRoyalties(address tokenAddress, uint256 tokenId) external view returns(address payable[] memory, uint256[] memory);
+}
