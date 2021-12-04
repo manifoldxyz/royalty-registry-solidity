@@ -6,6 +6,11 @@
   "directories": {
     "test": "test"
   },
+  "files": [
+    "/contracts/**/*.sol",
+    "/build/contracts/*.json",
+    "!/contracts/mocks/**/*"
+  ],
   "scripts": {
     "test": "npx truffle test",
     "test:start-network": "npx ganache-cli -a 15"
