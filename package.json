@@ -1,11 +1,15 @@
 {
   "name": "@manifoldxyz/royalty-registry-solidity",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "",
   "main": "truffle-config.js",
   "directories": {
     "test": "test"
   },
+  "files": [
+    "contracts/**/*.sol",
+    "build/contracts/*.json"
+  ],
   "scripts": {
     "test": "npx truffle test",
     "test:start-network": "npx ganache-cli -a 15"
