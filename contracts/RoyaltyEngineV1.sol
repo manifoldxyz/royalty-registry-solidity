@@ -17,7 +17,7 @@ import "./specs/IFoundation.sol";
 import "./specs/ISuperRare.sol";
 import "./specs/IEIP2981.sol";
 import "./specs/IZoraOverride.sol";
-import "./specs/IArtBlocks.sol";
+import "./overrides/IMultiContractRoyaltyOverride.sol";
 import "./IRoyaltyEngineV1.sol";
 import "./IRoyaltyRegistry.sol";
 
@@ -39,7 +39,7 @@ contract RoyaltyEngineV1 is ERC165, OwnableUpgradeable, IRoyaltyEngineV1 {
     int16 constant private EIP2981 = 5;
     int16 constant private SUPERRARE = 6;
     int16 constant private ZORA = 7;
-    int16 constant private ARTBLOCKS = 8;
+    int16 constant private MULTI_CONTRACT_OVERRIDE = 8;
 
     mapping (address => int16) _specCache;
 
@@ -93,6 +93,13 @@ contract RoyaltyEngineV1 is ERC165, OwnableUpgradeable, IRoyaltyEngineV1 {
             // No spec configured yet, so we need to detect the spec
             addToCache = true;
 
+            // General ERC165 MultiContract Override
+            if (ERC165Checker.supportsInterface(royaltyAddress, type(IMultiContractRoyaltyOverride).interfaceId)) {
+                uint256[] memory bps;
+                (recipients, bps) = IMultiContractRoyaltyOverride(royaltyAddress).getRoyalties(tokenAddress, tokenId);
+                require(recipients.length == bps.length);
+                return (recipients, _computeAmounts(value, bps), MULTI_CONTRACT_OVERRIDE, royaltyAddress, addToCache);
+            }
             // SuperRare handling
             if (tokenAddress == SuperRareContracts.SUPERRARE_V1 || tokenAddress == SuperRareContracts.SUPERRARE_V2) {
                 try ISuperRareRegistry(SuperRareContracts.SUPERRARE_REGISTRY).tokenCreator(tokenAddress, tokenId) returns(address payable creator) {
@@ -150,11 +157,6 @@ contract RoyaltyEngineV1 is ERC165, OwnableUpgradeable, IRoyaltyEngineV1 {
                 require(recipients_.length == bps.length);
                 return (recipients_, _computeAmounts(value, bps), ZORA, royaltyAddress, addToCache);
             } catch {}
-            try IArtBlocksOverride(royaltyAddress).getRoyalties(tokenAddress, tokenId) returns(address payable[] memory recipients_, uint256[] memory bps) {
-                // Support Art Blocks override
-                require(recipients_.length == bps.length);
-                return (recipients_, _computeAmounts(value, bps), ARTBLOCKS, royaltyAddress, addToCache);
-            } catch {}
 
             // No supported royalties configured
             return (recipients, amounts, NONE, royaltyAddress, addToCache);
@@ -163,6 +165,12 @@ contract RoyaltyEngineV1 is ERC165, OwnableUpgradeable, IRoyaltyEngineV1 {
             addToCache = false;
             if (spec == NONE) {
                 return (recipients, amounts, spec, royaltyAddress, addToCache);
+            } else if (spec == MULTI_CONTRACT_OVERRIDE) {
+                // General MultiContract Override spec
+                uint256[] memory bps;
+                (recipients, bps) = IMultiContractRoyaltyOverride(royaltyAddress).getRoyalties(tokenAddress, tokenId);
+                require(recipients.length == bps.length);
+                return (recipients, _computeAmounts(value, bps), MULTI_CONTRACT_OVERRIDE, royaltyAddress, addToCache);
             } else if (spec == MANIFOLD) {
                 // Manifold spec
                 uint256[] memory bps;
@@ -218,12 +226,6 @@ contract RoyaltyEngineV1 is ERC165, OwnableUpgradeable, IRoyaltyEngineV1 {
                 // Zora spec
                 uint256[] memory bps;
                 (recipients, bps) = IZoraOverride(royaltyAddress).convertBidShares(tokenAddress, tokenId);
-                require(recipients.length == bps.length);
-                return (recipients, _computeAmounts(value, bps), spec, royaltyAddress, addToCache);
-            } else if (spec == ARTBLOCKS) {
-                // Art Blocks Override spec
-                uint256[] memory bps;
-                (recipients, bps) = IArtBlocksOverride(royaltyAddress).getRoyalties(tokenAddress, tokenId);
                 require(recipients.length == bps.length);
                 return (recipients, _computeAmounts(value, bps), spec, royaltyAddress, addToCache);
             }
