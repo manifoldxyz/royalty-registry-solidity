@@ -17,6 +17,8 @@ import "../specs/IDigitalax.sol";
 import "../specs/IArtBlocks.sol";
 import "../IRoyaltyEngineV1.sol";
 
+import "../overrides/IMultiContractRoyaltyOverride.sol";
+
 /**
  * Does not implement any interface
  */
@@ -196,15 +198,72 @@ contract MockDigitalaxAccessControls is IDigitalaxAccessControls {
 }
 
 /**
- * Art Blocks Mocks
- */
- contract MockArtBlocks is IArtBlocks {
+* Art Blocks Mocks
+*/
+contract MockArtBlocks is IArtBlocks {
      address public override admin;
 
      constructor() {
          admin = msg.sender;
      }
- }
+
+    function getRoyaltyData(uint256 /*_tokenId*/)
+        public
+        view
+        override
+        returns (
+            address artistAddress,
+            address additionalPayee,
+            uint256 additionalPayeePercentage,
+            uint256 royaltyFeeByID
+        )
+    {
+        // generic, static response for mock
+        artistAddress = address(0);
+        additionalPayee = admin;
+        additionalPayeePercentage = 20;
+        royaltyFeeByID = 5;
+    }
+}
+
+contract MultiContractRoyaltyOverrideArtBlocks is IMultiContractRoyaltyOverride, ERC165 {
+
+    /**
+     * @dev See {IERC165-supportsInterface}.
+     */
+    // register interface 0x9ca7dc7a - getRoyalties(address,uint256)
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        override(ERC165, IERC165)
+        returns (bool)
+    {
+        return
+            interfaceId == type(IMultiContractRoyaltyOverride).interfaceId ||
+            super.supportsInterface(interfaceId);
+    }
+
+    function getRoyalties(address tokenAddress, uint256 tokenId)
+        external
+        view
+        override
+        returns (address payable[] memory recipients_, uint256[] memory bps) 
+    {
+        // example call to ArtBlocks-style contract (ignoring AB royalties)
+        recipients_ = new address payable[](2);
+        bps = new uint256[](2);
+        (
+            address artistAddress,
+            address additionalPayee,
+            uint256 additionalPayeePercentage,
+            uint256 royaltyFeeByID
+        ) = IArtBlocks(tokenAddress).getRoyaltyData(tokenId);
+        recipients_[0] = payable(artistAddress);
+        bps[0] = (uint256(100) - additionalPayeePercentage) * royaltyFeeByID;
+        recipients_[1] = payable(additionalPayee);
+        bps[1] = additionalPayeePercentage * royaltyFeeByID;
+    }
+}
 
 
 /**

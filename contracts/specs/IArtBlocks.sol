@@ -8,4 +8,14 @@ pragma solidity ^0.8.0;
 interface IArtBlocks {
    // document getter function of public variable
    function admin() external view returns (address);
+
+   function getRoyaltyData(uint256 _tokenId)
+   external
+   view
+   returns (
+      address artistAddress,
+      address additionalPayee,
+      uint256 additionalPayeePercentage,
+      uint256 royaltyFeeByID
+   );
 }
