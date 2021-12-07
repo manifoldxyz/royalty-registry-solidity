@@ -226,7 +226,7 @@ contract MockArtBlocks is IArtBlocks {
     }
 }
 
-contract MultiContractRoyaltyOverrideArtBlocks is IMultiContractRoyaltyOverride, ERC165 {
+contract MockMultiContractRoyaltyOverrideArtBlocks is IMultiContractRoyaltyOverride, ERC165 {
 
     /**
      * @dev See {IERC165-supportsInterface}.
