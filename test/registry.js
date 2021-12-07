@@ -16,6 +16,7 @@ const MockNiftyRegistry = artifacts.require("MockNiftyRegistry");
 const MockDigitalaxNFT = artifacts.require("MockDigitalaxNFT");
 const MockDigitalaxAccessControls = artifacts.require("MockDigitalaxAccessControls");
 const MockArtBlocks = artifacts.require("MockArtBlocks");
+const MockMultiContractRoyaltyOverrideArtBlocks = artifacts.require("MockMultiContractRoyaltyOverrideArtBlocks");
 const MockERC1155PresetMinterPauser = artifacts.require("MockERC1155PresetMinterPauser");
 
 contract('Registry', function ([...accounts]) {
@@ -50,6 +51,7 @@ contract('Registry', function ([...accounts]) {
     var mockDigitalaxAccessControls;
     var mockNiftyBuilder;
     var mockArtBlocks;
+    var mockMultiContractOverrideArtBlocks;
     var mockERC1155PresetMinterPauser;
 
     beforeEach(async function () {
@@ -69,6 +71,7 @@ contract('Registry', function ([...accounts]) {
       mockDigitalaxAccessControls = await MockDigitalaxAccessControls.new(owner, {from: owner});
       mockDigitalaxNFT = await MockDigitalaxNFT.new(mockDigitalaxAccessControls.address, {from: owner});
       mockArtBlocks = await MockArtBlocks.new({from: artBlocksDeployer});
+      mockMultiContractOverrideArtBlocks = await MockMultiContractRoyaltyOverrideArtBlocks.new({from: artBlocksDeployer});
       mockERC1155PresetMinterPauser = await MockERC1155PresetMinterPauser.new({from: erc1155PresetDeployer});
     });
 
@@ -77,8 +80,10 @@ contract('Registry', function ([...accounts]) {
       await truffleAssert.reverts(registry.setRoyaltyLookupAddress(mockContract.address, owner), "Invalid input");
       await truffleAssert.reverts(registry.setRoyaltyLookupAddress(mockContract.address, mockManifold.address, {from: eip2981Deployer}));
       await truffleAssert.reverts(registry.setRoyaltyLookupAddress(mockManifold.address, mockManifold.address, {from: eip2981Deployer}), "Permission denied");
+      await truffleAssert.reverts(registry.setRoyaltyLookupAddress(mockArtBlocks.address, mockArtBlocks.address, {from: random}), "Permission denied");
       await registry.setRoyaltyLookupAddress(mockContract.address, mockManifold.address, {from: owner});
       await registry.setRoyaltyLookupAddress(mockManifold.address, mockFoundation.address, {from: manifoldDeployer});
+      await registry.setRoyaltyLookupAddress(mockArtBlocks.address, mockArtBlocks.address, {from: artBlocksDeployer});
     });
 
     it('permissions test', async function() {
@@ -114,6 +119,7 @@ contract('Registry', function ([...accounts]) {
       var raribleV1TokenId = 4;
       var raribleV2TokenId = 5;
       var eip2981TokenId = 6;
+      var artBlocksTokenId = 7;
 
       var unallocatedBps = 100;
       var manifoldBps = 200;
@@ -222,6 +228,7 @@ contract('Registry', function ([...accounts]) {
 
       // Simulate paying a royalty and check gas cost
       await mockRoyaltyPayer.deposit({from:owner, value:value*100})
+      await registry.setRoyaltyLookupAddress(mockArtBlocks.address, mockMultiContractOverrideArtBlocks.address, {from: artBlocksDeployer});
       var tx;
       tx = await mockRoyaltyPayer.payout(engine.address, mockContract.address, 1, value);
       console.log("Payout gas no royalties: %s", tx.receipt.gasUsed);
@@ -237,6 +244,8 @@ contract('Registry', function ([...accounts]) {
       console.log("Payout gas eip2981: %s", tx.receipt.gasUsed);
       tx = await mockRoyaltyPayer.payout(engine.address, mockContract.address, unallocatedTokenId, value);
       console.log("Payout gas used with override: %s", tx.receipt.gasUsed);
+      tx = await mockRoyaltyPayer.payout(engine.address, mockArtBlocks.address, artBlocksTokenId, value);
+      console.log("Payout gas art blocks: %s", tx.receipt.gasUsed);
 
       // Simulate after running cache
       await engine.getRoyalty(mockManifold.address, manifoldTokenId, value)
@@ -244,6 +253,7 @@ contract('Registry', function ([...accounts]) {
       await engine.getRoyalty(mockRaribleV1.address, raribleV1TokenId, value)
       await engine.getRoyalty(mockRaribleV2.address, raribleV2TokenId, value)
       await engine.getRoyalty(mockEIP2981.address, eip2981TokenId, value)
+      await engine.getRoyalty(mockArtBlocks.address, artBlocksTokenId, value);
       await mockRoyaltyPayer.payout(engine.address, mockContract.address, unallocatedTokenId, value);
       tx = await mockRoyaltyPayer.payout(engine.address, mockContract.address, 1, value);
       console.log("CACHE: Payout gas no royalties: %s", tx.receipt.gasUsed);
@@ -259,6 +269,8 @@ contract('Registry', function ([...accounts]) {
       console.log("CACHE: Payout gas eip2981: %s", tx.receipt.gasUsed);
       tx = await mockRoyaltyPayer.payout(engine.address, mockContract.address, unallocatedTokenId, value);
       console.log("CACHE: Payout gas used with override: %s", tx.receipt.gasUsed);
+      tx = await mockRoyaltyPayer.payout(engine.address, mockArtBlocks.address, artBlocksTokenId, value);
+      console.log("CACHE: Payout gas art blocks: %s", tx.receipt.gasUsed);
 
       // Foundation override test
       await truffleAssert.reverts(registry.setRoyaltyLookupAddress(mockFoundation.address, mockManifold.address, {from: random}));
@@ -284,6 +296,7 @@ contract('Registry', function ([...accounts]) {
 
     it('invalid royalties test', async function () {
       engine = await deployProxy(RoyaltyEngineV1, [registry.address], {initializer: "initialize", from:owner});
+      await registry.setRoyaltyLookupAddress(mockArtBlocks.address, mockMultiContractOverrideArtBlocks.address, {from: artBlocksDeployer});
 
       var unallocatedTokenId = 1;
       var manifoldTokenId = 2;
@@ -291,6 +304,7 @@ contract('Registry', function ([...accounts]) {
       var raribleV1TokenId = 4;
       var raribleV2TokenId = 5;
       var eip2981TokenId = 6;
+      var artBlocksTokenId = 7;
 
 
       await mockManifold.setRoyalties(manifoldTokenId, [manifoldDeployer], [10000]);
@@ -298,6 +312,7 @@ contract('Registry', function ([...accounts]) {
       await mockRaribleV1.setRoyalties(raribleV1TokenId, [raribleV1Deployer], [10000]);
       await mockRaribleV2.setRoyalties(raribleV2TokenId, [raribleV2Deployer], [10000]);
       await mockEIP2981.setRoyalties(eip2981TokenId, [eip2981Deployer], [10000]);
+      await mockArtBlocks.setDefaultRoyaltyFee(101, {from:artBlocksDeployer});
 
       var value = 10000;
 
@@ -306,6 +321,7 @@ contract('Registry', function ([...accounts]) {
       await truffleAssert.reverts(engine.getRoyaltyView(mockRaribleV1.address, raribleV1TokenId, value), "Invalid royalty amount");
       await truffleAssert.reverts(engine.getRoyaltyView(mockRaribleV2.address, raribleV2TokenId, value), "Invalid royalty amount");
       await truffleAssert.reverts(engine.getRoyaltyView(mockEIP2981.address, eip2981TokenId, value), "Invalid royalty amount");
+      await truffleAssert.reverts(engine.getRoyaltyView(mockArtBlocks.address, artBlocksTokenId, value), "Invalid royalty amount");
 
       // Set back to normal values
       var manifoldBps = 2000;
@@ -313,12 +329,14 @@ contract('Registry', function ([...accounts]) {
       var raribleV1Bps = 4000;
       var raribleV2Bps = 5000;
       var eip2981Bps = 6000;
+      var artBlocksPercent = 5;
 
       await mockManifold.setRoyalties(manifoldTokenId, [defaultDeployer, manifoldDeployer], [manifoldBps, manifoldBps]);
       await mockFoundation.setRoyalties(foundationTokenId, [foundationDeployer], [foundationBps]);
       await mockRaribleV1.setRoyalties(raribleV1TokenId, [raribleV1Deployer, raribleV2Deployer], [raribleV1Bps, raribleV2Bps]);
       await mockRaribleV2.setRoyalties(raribleV2TokenId, [raribleV2Deployer], [raribleV2Bps]);
       await mockEIP2981.setRoyalties(eip2981TokenId, [eip2981Deployer], [eip2981Bps]);
+      await mockArtBlocks.setDefaultRoyaltyFee(artBlocksPercent, {from:artBlocksDeployer});
 
       // Simulate paying a royalty and check gas cost
       await mockRoyaltyPayer.deposit({from:owner, value:value*100})
@@ -328,6 +346,7 @@ contract('Registry', function ([...accounts]) {
       await mockRoyaltyPayer.payout(engine.address, mockRaribleV1.address, raribleV1TokenId, value);
       await mockRoyaltyPayer.payout(engine.address, mockRaribleV2.address, raribleV2TokenId, value);
       await mockRoyaltyPayer.payout(engine.address, mockEIP2981.address, eip2981TokenId, value);
+      await mockRoyaltyPayer.payout(engine.address, mockArtBlocks.address, artBlocksTokenId, value);
 
       // Simulate after running cache
       await engine.getRoyalty(mockManifold.address, manifoldTokenId, value)
@@ -335,6 +354,7 @@ contract('Registry', function ([...accounts]) {
       await engine.getRoyalty(mockRaribleV1.address, raribleV1TokenId, value)
       await engine.getRoyalty(mockRaribleV2.address, raribleV2TokenId, value)
       await engine.getRoyalty(mockEIP2981.address, eip2981TokenId, value)
+      await engine.getRoyalty(mockArtBlocks.address, artBlocksTokenId, value)
 
       // Set to bad values again
       await mockManifold.setRoyalties(manifoldTokenId, [defaultDeployer, manifoldDeployer], [4000, 6000]);
@@ -342,12 +362,14 @@ contract('Registry', function ([...accounts]) {
       await mockRaribleV1.setRoyalties(raribleV1TokenId, [raribleV1Deployer, raribleV2Deployer], [4000, 6000]);
       await mockRaribleV2.setRoyalties(raribleV2TokenId, [raribleV2Deployer], [10000]);
       await mockEIP2981.setRoyalties(eip2981TokenId, [eip2981Deployer], [10000]);
+      await mockArtBlocks.setDefaultRoyaltyFee(101, {from:artBlocksDeployer});
 
       await truffleAssert.reverts(engine.getRoyaltyView(mockManifold.address, manifoldTokenId, value), "Invalid royalty amount");
       await truffleAssert.reverts(engine.getRoyaltyView(mockFoundation.address, foundationTokenId, value), "Invalid royalty amount");
       await truffleAssert.reverts(engine.getRoyaltyView(mockRaribleV1.address, raribleV1TokenId, value), "Invalid royalty amount");
       await truffleAssert.reverts(engine.getRoyaltyView(mockRaribleV2.address, raribleV2TokenId, value), "Invalid royalty amount");
       await truffleAssert.reverts(engine.getRoyaltyView(mockEIP2981.address, eip2981TokenId, value), "Invalid royalty amount");
+      await truffleAssert.reverts(engine.getRoyaltyView(mockArtBlocks.address, artBlocksTokenId, value), "Invalid royalty amount");
 
     });
 

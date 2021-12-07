@@ -201,11 +201,16 @@ contract MockDigitalaxAccessControls is IDigitalaxAccessControls {
 * Art Blocks Mocks
 */
 contract MockArtBlocks is IArtBlocks {
-     address public override admin;
+    address public override admin;
+    uint256 public defaultRoyaltyFee = 5;
 
-     constructor() {
-         admin = msg.sender;
-     }
+    constructor() {
+        admin = msg.sender;
+    }
+
+    function setDefaultRoyaltyFee(uint256 _defaultRoyaltyFee) public {
+        defaultRoyaltyFee = _defaultRoyaltyFee;
+    }
 
     function getRoyaltyData(uint256 /*_tokenId*/)
         public
@@ -218,11 +223,11 @@ contract MockArtBlocks is IArtBlocks {
             uint256 royaltyFeeByID
         )
     {
-        // generic, static response for mock
+        // generic response for mock
         artistAddress = address(0);
         additionalPayee = admin;
         additionalPayeePercentage = 20;
-        royaltyFeeByID = 5;
+        royaltyFeeByID = defaultRoyaltyFee;
     }
 }
 
