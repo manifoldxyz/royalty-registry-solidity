@@ -4,9 +4,11 @@ const { deployProxy } = require('@openzeppelin/truffle-upgrades');
 const EIP2981RoyaltyOverride = artifacts.require("EIP2981RoyaltyOverride");
 const EIP2981RoyaltyOverrideCloneable = artifacts.require("EIP2981RoyaltyOverrideCloneable");
 const EIP2981RoyaltyOverrideFactory = artifacts.require("EIP2981RoyaltyOverrideFactory");
+const MultiContractRoyaltyOverrideArtBlocks = artifacts.require("MultiContractRoyaltyOverrideArtBlocks");
 const RoyaltyRegistry = artifacts.require("RoyaltyRegistry");
 const RoyaltyEngineV1 = artifacts.require("RoyaltyEngineV1")
 const MockContract = artifacts.require("MockContract");
+const MockArtBlocks = artifacts.require("MockArtBlocks");
 
 contract('Registry', function ([...accounts]) {
   const [
@@ -27,6 +29,7 @@ contract('Registry', function ([...accounts]) {
     var override;
     var overrideCloneable;
     var overrideFactory;
+    var mockArtBlocks;
 
     beforeEach(async function () {
       registry = await deployProxy(RoyaltyRegistry, {initializer: "initialize", from:owner});
@@ -34,6 +37,8 @@ contract('Registry', function ([...accounts]) {
       override = await EIP2981RoyaltyOverride.new({from: admin});
       overrideCloneable = await EIP2981RoyaltyOverrideCloneable.new();
       overrideFactory = await EIP2981RoyaltyOverrideFactory.new(overrideCloneable.address);
+      multiContractOverrideArtBlocks = await MultiContractRoyaltyOverrideArtBlocks.new({from: admin});
+      mockArtBlocks = await MockArtBlocks.new({from: another1});
     });
 
     it('override test', async function () {
@@ -44,6 +49,7 @@ contract('Registry', function ([...accounts]) {
     it('test', async function () {
       // Check override interface
       assert.equal(await override.supportsInterface("0xc69dbd8f"), true);
+      assert.equal(await override.supportsInterface("0xffffffff"), false);
 
       await truffleAssert.reverts(override.setTokenRoyalties([[1, another1, 10000]], {from:admin}), "Invalid bps");
       await truffleAssert.reverts(override.setDefaultRoyalty([another1, 10000], {from:admin}), "Invalid bps");
@@ -125,6 +131,46 @@ contract('Registry', function ([...accounts]) {
       assert.equal(result[1].length, 1);
       assert.deepEqual(result[1][0], web3.utils.toBN(value*400/10000));
       assert.equal(1, await clone.getTokenRoyaltiesCount())
+    });
+
+
+    it('test multi-contract artblocks', async function () {
+      // Check override interface
+      assert.equal(await multiContractOverrideArtBlocks.supportsInterface("0x9ca7dc7a"), true);
+      assert.equal(await multiContractOverrideArtBlocks.supportsInterface("0xffffffff"), false);
+
+      // expect revert when asking for royalties of EOA, directly from override contract
+      await truffleAssert.reverts(multiContractOverrideArtBlocks.getRoyalties(another2, 0, {from:another1}), "revert");
+
+      engine = await deployProxy(RoyaltyEngineV1, [registry.address], {initializer: "initialize", from:owner});
+      let value = 1000;
+
+      // expect empty responses when asking for royalties of mockArtBlocks w/o override
+      let result = await engine.getRoyaltyView(mockArtBlocks.address, 0, value, {from:another1});
+      assert.equal(result["recipients"].length, 0);
+      assert.equal(result["amounts"].length, 0);
+
+      // set mockArtBlocks override to be multiContractOverrideArtBlocks
+      await registry.setRoyaltyLookupAddress(mockArtBlocks.address, multiContractOverrideArtBlocks.address, {from:another1});
+
+      // expect override to return mockArtBlocks default royalty results
+      result = await engine.getRoyaltyView(mockArtBlocks.address, 0, value, {from:another1});
+      assert.deepEqual(result[0],["0x0000000000000000000000000000000000000000", another1]);
+      assert.deepEqual(result[1], [web3.utils.toBN(value*4/100), web3.utils.toBN(value*1/100)]);
+
+      // expect override to return mockArtBlocks default royalty results when someone else calls
+      result = await engine.getRoyaltyView(mockArtBlocks.address, 0, value, {from:another2});
+      assert.deepEqual(result[0],["0x0000000000000000000000000000000000000000", another1]);
+      assert.deepEqual(result[1], [web3.utils.toBN(value*4/100), web3.utils.toBN(value*1/100)]);
+
+      // expect to return mockArtBlocks default royalty results (in bps) when calling override contract directly
+      result = await multiContractOverrideArtBlocks.getRoyalties(mockArtBlocks.address, 0, {from:another1});
+      assert.deepEqual(result[0],["0x0000000000000000000000000000000000000000", another1]);
+      assert.deepEqual(result[1], [web3.utils.toBN(10000*4/100), web3.utils.toBN(10000*1/100)]);
+
+      // expect revert when asking for royalties of non-artblocks contract
+      await registry.setRoyaltyLookupAddress(mockContract.address, multiContractOverrideArtBlocks.address, {from:another1});
+      await truffleAssert.reverts(engine.getRoyaltyView(mockContract.address, 0, value, {from:another1}), "revert");
     });
 
   });
