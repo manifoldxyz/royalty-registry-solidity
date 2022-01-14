@@ -15,6 +15,7 @@ import "../specs/IEIP2981.sol";
 import "../specs/INiftyGateway.sol";
 import "../specs/IDigitalax.sol";
 import "../specs/IArtBlocks.sol";
+import "../specs/IArtBlocksOverride.sol";
 import "../IRoyaltyEngineV1.sol";
 
 /**
@@ -204,6 +205,35 @@ contract MockDigitalaxAccessControls is IDigitalaxAccessControls {
      constructor() {
          admin = msg.sender;
      }
+ }
+
+ contract MockArtBlocksOverride is IArtBlocksOverride {
+     address payable payee = payable(address(0));
+     address payable secondaryPayee;
+     uint256 totalRoyaltyBps = 500;
+
+     constructor() {
+         secondaryPayee = payable(msg.sender);
+     }
+
+     function setRoyalties(uint256 _totalRoyaltyBps) public {
+         totalRoyaltyBps = _totalRoyaltyBps;
+     }
+
+     function getRoyalties(address /*tokenAddress*/, uint256 /*tokenId*/)
+        external
+        view
+        override
+        returns (address payable[] memory recipients_, uint256[] memory bps) {
+            recipients_ = new address payable[](3);
+            bps = new uint256[](3);
+            // arbitrary 80/20 royalty split for testing
+            recipients_[0] = payee;
+            recipients_[1] = secondaryPayee;
+            bps[0] = totalRoyaltyBps*80/100;
+            bps[1] = totalRoyaltyBps*20/100;
+            // leave last slot as 0 bps
+        }
  }
 
 
