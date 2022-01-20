@@ -38,14 +38,11 @@ contract ZoraOverride is IZoraOverride, ERC165 {
         receivers = new address payable[](totalLength);
         bps = new uint256[](totalLength);
 
-        uint256 currentIndex = 0;
         if (bidShares.creator.value != 0) {
-            receivers[currentIndex] = payable(IZoraMedia(media).tokenCreators(tokenId));
-            bps[currentIndex] = bidShares.creator.value/(10**(18-2));
-            currentIndex++;
+            receivers[0] = payable(IZoraMedia(media).tokenCreators(tokenId));
+            bps[0] = bidShares.creator.value/(10**(18-2));
         }
+        
         return (receivers, bps);
     }
-    
-
 }
