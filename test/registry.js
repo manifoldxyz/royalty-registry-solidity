@@ -18,6 +18,7 @@ const MockDigitalaxAccessControls = artifacts.require("MockDigitalaxAccessContro
 const MockArtBlocks = artifacts.require("MockArtBlocks");
 const MockArtBlocksOverride = artifacts.require("MockArtBlocksOverride");
 const MockERC1155PresetMinterPauser = artifacts.require("MockERC1155PresetMinterPauser");
+const MockZora = artifacts.require("ZoraOverride");
 
 contract('Registry', function ([...accounts]) {
   const [
@@ -53,6 +54,7 @@ contract('Registry', function ([...accounts]) {
     var mockArtBlocks;
     var mockArtBlocksOverride;
     var mockERC1155PresetMinterPauser;
+    var mockZora;
 
     beforeEach(async function () {
       registry = await deployProxy(RoyaltyRegistry, {initializer: "initialize", from:owner});
@@ -72,7 +74,8 @@ contract('Registry', function ([...accounts]) {
       mockDigitalaxNFT = await MockDigitalaxNFT.new(mockDigitalaxAccessControls.address, {from: owner});
       mockArtBlocks = await MockArtBlocks.new({from: artBlocksDeployer});
       mockArtBlocksOverride = await MockArtBlocksOverride.new({from: artBlocksDeployer});
-      mockERC1155PresetMinterPauser = await MockERC1155PresetMinterPauser.new({from: erc1155PresetDeployer});
+      mockERC1155PresetMinterPauser = await MockERC1155PresetMinterPauser.new({ from: erc1155PresetDeployer });
+      mockZora = await MockZora.new();
     });
 
     it('override test', async function () {
@@ -81,7 +84,8 @@ contract('Registry', function ([...accounts]) {
       await truffleAssert.reverts(registry.setRoyaltyLookupAddress(mockContract.address, mockManifold.address, {from: eip2981Deployer}));
       await truffleAssert.reverts(registry.setRoyaltyLookupAddress(mockManifold.address, mockManifold.address, {from: eip2981Deployer}), "Permission denied");
       await registry.setRoyaltyLookupAddress(mockContract.address, mockManifold.address, {from: owner});
-      await registry.setRoyaltyLookupAddress(mockManifold.address, mockFoundation.address, {from: manifoldDeployer});
+      await registry.setRoyaltyLookupAddress(mockManifold.address, mockFoundation.address, { from: manifoldDeployer });
+      await registry.setRoyaltyLookupAddress(mockContract.address, mockZora.address, { from: owner });
     });
 
     it('permissions test', async function() {
@@ -95,7 +99,8 @@ contract('Registry', function ([...accounts]) {
       assert.equal(false, await registry.overrideAllowed(mockNiftyBuilder.address, {from:random}));
       assert.equal(false, await registry.overrideAllowed(mockDigitalaxNFT.address, {from:random}));
       assert.equal(false, await registry.overrideAllowed(mockArtBlocks.address, {from:random}));
-      assert.equal(false, await registry.overrideAllowed(mockERC1155PresetMinterPauser.address, {from:random}));
+      assert.equal(false, await registry.overrideAllowed(mockERC1155PresetMinterPauser.address, { from: random }));
+      assert.equal(false, await registry.overrideAllowed(mockZora.address, { from: random }));
 
       assert.equal(true, await registry.overrideAllowed(mockManifold.address, {from:manifoldDeployer}));
       assert.equal(true, await registry.overrideAllowed(mockFoundation.address, {from:foundationDeployer}));
@@ -105,7 +110,8 @@ contract('Registry', function ([...accounts]) {
       assert.equal(true, await registry.overrideAllowed(mockNiftyBuilder.address, {from:niftyDeployer}));
       assert.equal(true, await registry.overrideAllowed(mockDigitalaxNFT.address, {from:owner}));
       assert.equal(true, await registry.overrideAllowed(mockArtBlocks.address, {from:artBlocksDeployer}));
-      assert.equal(true, await registry.overrideAllowed(mockERC1155PresetMinterPauser.address, {from:erc1155PresetDeployer}));
+      assert.equal(true, await registry.overrideAllowed(mockERC1155PresetMinterPauser.address, { from: erc1155PresetDeployer }));
+      assert.equal(true, await registry.overrideAllowed(mockZora.address, { from: owner }))
     })
 
     it('getRoyalty test', async function () {
