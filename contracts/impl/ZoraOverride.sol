@@ -30,24 +30,19 @@ contract ZoraOverride is IZoraOverride, ERC165 {
         // if (bidShares.prevOwner.value != 0) totalLength++;
 
         if (bidShares.creator.value != 0) totalLength++;
-        if (bidShares.owner.value != 0) totalLength++;
+
+        // NOTE: We do not support owner bps because these are expected to be handled by the individual market
+        // implementations and are not truly royalties
+        // if (bidShares.owner.value != 0) totalLength++;
 
         receivers = new address payable[](totalLength);
         bps = new uint256[](totalLength);
 
-        uint256 currentIndex = 0;
         if (bidShares.creator.value != 0) {
-            receivers[currentIndex] = payable(IZoraMedia(media).tokenCreators(tokenId));
-            bps[currentIndex] = bidShares.creator.value/(10**(18-2));
-            currentIndex++;
+            receivers[0] = payable(IZoraMedia(media).tokenCreators(tokenId));
+            bps[0] = bidShares.creator.value/(10**(18-2));
         }
-        if (bidShares.owner.value != 0) {
-            receivers[currentIndex] = payable(IZoraMedia(media).ownerOf(tokenId));
-            bps[currentIndex] = bidShares.owner.value/(10**(18-2));
-            currentIndex++;
-        }
+        
         return (receivers, bps);
     }
-    
-
 }
