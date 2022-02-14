@@ -62,21 +62,25 @@ contract RoyaltyEngineV1 is ERC165, OwnableUpgradeable, IRoyaltyEngineV1 {
      * @dev See {IRoyaltyEngineV1-getRoyalty}
      */
     function getRoyalty(address tokenAddress, uint256 tokenId, uint256 value) public override returns(address payable[] memory recipients, uint256[] memory amounts) {
-        int16 spec;
-        address royaltyAddress;
-        bool addToCache;
-
-        (recipients, amounts, spec, royaltyAddress, addToCache) = _getRoyaltyAndSpec(tokenAddress, tokenId, value);
-        if (addToCache) _specCache[royaltyAddress] = spec;
-        return (recipients, amounts);
+        // External call to limit gas 
+        try this._getRoyaltyAndSpec{gas: 50000}(tokenAddress, tokenId, value) returns (address payable[] memory _recipients, uint256[] memory _amounts, int16 spec, address royaltyAddress, bool addToCache) {
+            if (addToCache) _specCache[royaltyAddress] = spec;
+            return (_recipients, _amounts);
+        } catch {
+            revert ("Invalid royalty amount");
+        }
     }
 
     /**
      * @dev See {IRoyaltyEngineV1-getRoyaltyView}.
      */
     function getRoyaltyView(address tokenAddress, uint256 tokenId, uint256 value) public view override returns(address payable[] memory recipients, uint256[] memory amounts) {
-        (recipients, amounts, , , ) = _getRoyaltyAndSpec(tokenAddress, tokenId, value);
-        return (recipients, amounts);
+        // External call to limit gas 
+        try this._getRoyaltyAndSpec{gas: 50000}(tokenAddress, tokenId, value) returns (address payable[] memory _recipients, uint256[] memory _amounts, int16, address, bool) {
+            return (_recipients, _amounts);
+        } catch {
+            revert ("Invalid royalty amount");
+        }
     }
 
     /**
@@ -84,7 +88,8 @@ contract RoyaltyEngineV1 is ERC165, OwnableUpgradeable, IRoyaltyEngineV1 {
      * 
      * returns recipieints array, amounts array, royalty spec, royalty address, whether or not to add to cache
      */
-    function _getRoyaltyAndSpec(address tokenAddress, uint256 tokenId, uint256 value) private view returns(address payable[] memory recipients, uint256[] memory amounts, int16 spec, address royaltyAddress, bool addToCache) {
+    function _getRoyaltyAndSpec(address tokenAddress, uint256 tokenId, uint256 value) external view returns(address payable[] memory recipients, uint256[] memory amounts, int16 spec, address royaltyAddress, bool addToCache) {
+        require(msg.sender == address(this), "Only Engine");
 
         royaltyAddress = IRoyaltyRegistry(royaltyRegistry).getRoyaltyLookupAddress(tokenAddress);
         spec = _specCache[royaltyAddress];
