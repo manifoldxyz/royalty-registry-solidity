@@ -76,7 +76,7 @@ contract RoyaltyEngineV1 is ERC165, OwnableUpgradeable, IRoyaltyEngineV1 {
      */
     function getRoyaltyView(address tokenAddress, uint256 tokenId, uint256 value) public view override returns(address payable[] memory recipients, uint256[] memory amounts) {
         // External call to limit gas 
-        try this._getRoyaltyAndSpec{gas: 50000}(tokenAddress, tokenId, value) returns (address payable[] memory _recipients, uint256[] memory _amounts, int16, address, bool) {
+        try this._getRoyaltyAndSpec{gas: 100000}(tokenAddress, tokenId, value) returns (address payable[] memory _recipients, uint256[] memory _amounts, int16, address, bool) {
             return (_recipients, _amounts);
         } catch {
             revert ("Invalid royalty amount");
