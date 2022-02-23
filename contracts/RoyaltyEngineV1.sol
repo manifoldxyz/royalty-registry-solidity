@@ -110,6 +110,15 @@ contract RoyaltyEngineV1 is ERC165, OwnableUpgradeable, IRoyaltyEngineV1 {
                     } catch {}
                 } catch {}
             }
+            try IEIP2981(royaltyAddress).royaltyInfo(tokenId, value) returns(address recipient, uint256 amount) {
+                // Supports EIP2981.  Return amounts
+                require(amount < value, "Invalid royalty amount");
+                recipients = new address payable[](1);
+                amounts = new uint256[](1);
+                recipients[0] = payable(recipient);
+                amounts[0] = amount;
+                return (recipients, amounts, EIP2981, royaltyAddress, addToCache);
+            } catch {}
             try IManifold(royaltyAddress).getRoyalties(tokenId) returns(address payable[] memory recipients_, uint256[] memory bps) {
                 // Supports manifold interface.  Compute amounts
                 require(recipients_.length == bps.length);
@@ -140,15 +149,6 @@ contract RoyaltyEngineV1 is ERC165, OwnableUpgradeable, IRoyaltyEngineV1 {
                 // Supports foundation interface.  Compute amounts
                 require(recipients_.length == bps.length);
                 return (recipients_, _computeAmounts(value, bps), FOUNDATION, royaltyAddress, addToCache);
-            } catch {}
-            try IEIP2981(royaltyAddress).royaltyInfo(tokenId, value) returns(address recipient, uint256 amount) {
-                // Supports EIP2981.  Return amounts
-                require(amount < value, "Invalid royalty amount");
-                recipients = new address payable[](1);
-                amounts = new uint256[](1);
-                recipients[0] = payable(recipient);
-                amounts[0] = amount;
-                return (recipients, amounts, EIP2981, royaltyAddress, addToCache);
             } catch {}
             try IZoraOverride(royaltyAddress).convertBidShares(tokenAddress, tokenId) returns(address payable[] memory recipients_, uint256[] memory bps) {
                 // Support Zora override
