@@ -3,7 +3,7 @@
 The Royalty Registry was developed in conjunction with Foundation, manifold.xyz, Nifty Gateway, OpenSea, Rariblee and SuperRare
 
 The Royalty Registry is located at royaltyregistry.eth (0xad2184fb5dbcfc05d8f056542fb25b04fa32a95d) on the Ethereum mainnet.
-Royalty Engine V1 is located at engine-v1.royaltyregistry.eth (0x8d17687ea9a6bb6efA24ec11DcFab01661b2ddcd) on the Ethereum mainnet.
+Royalty Engine V1 is located at engine-v1.royaltyregistry.eth (0x0385603ab55642cb4dd5de3ae9e306809991804f) on the Ethereum mainnet.
 
 https://royaltyregistry.xyz is a Web3 DApp which makes on-chain royalty lookups and override configurations easy.
 
