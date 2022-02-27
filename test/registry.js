@@ -295,6 +295,11 @@ contract('Registry', function ([...accounts]) {
       await truffleAssert.reverts(registry.setRoyaltyLookupAddress(mockERC1155PresetMinterPauser.address, mockManifold.address, {from: random}));
       registry.setRoyaltyLookupAddress(mockERC1155PresetMinterPauser.address, mockManifold.address, {from: erc1155PresetDeployer})
 
+      // Check spec cache
+      assert.equal(await engine.getCachedRoyaltySpec(mockEIP2981.address), 5);
+      await engine.invalidateCachedRoyaltySpec(mockEIP2981.address, {from:random});
+      assert.equal(await engine.getCachedRoyaltySpec(mockEIP2981.address), 0);
+      
     });
 
     it('invalid royalties test', async function () {

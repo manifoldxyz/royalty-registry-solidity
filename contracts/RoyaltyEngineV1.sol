@@ -59,6 +59,22 @@ contract RoyaltyEngineV1 is ERC165, OwnableUpgradeable, IRoyaltyEngineV1 {
     }
 
     /**
+     * @dev Invalidate the cached spec (useful for situations where tooken royalty implementation changes to a different spec)
+     */
+    function invalidateCachedRoyaltySpec(address tokenAddress) public {
+        address royaltyAddress = IRoyaltyRegistry(royaltyRegistry).getRoyaltyLookupAddress(tokenAddress);
+        delete _specCache[royaltyAddress];
+    }
+
+    /**
+     * @dev View function to get the cached spec of a token
+     */
+    function getCachedRoyaltySpec(address tokenAddress) public view returns(int16) {
+        address royaltyAddress = IRoyaltyRegistry(royaltyRegistry).getRoyaltyLookupAddress(tokenAddress);
+        return _specCache[royaltyAddress];    
+    }
+
+    /**
      * @dev See {IRoyaltyEngineV1-getRoyalty}
      */
     function getRoyalty(address tokenAddress, uint256 tokenId, uint256 value) public override returns(address payable[] memory recipients, uint256[] memory amounts) {
