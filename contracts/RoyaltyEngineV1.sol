@@ -79,7 +79,7 @@ contract RoyaltyEngineV1 is ERC165, OwnableUpgradeable, IRoyaltyEngineV1 {
      */
     function getRoyalty(address tokenAddress, uint256 tokenId, uint256 value) public override returns(address payable[] memory recipients, uint256[] memory amounts) {
         // External call to limit gas 
-        try this._getRoyaltyAndSpec{gas: 50000}(tokenAddress, tokenId, value) returns (address payable[] memory _recipients, uint256[] memory _amounts, int16 spec, address royaltyAddress, bool addToCache) {
+        try this._getRoyaltyAndSpec{gas: 100000}(tokenAddress, tokenId, value) returns (address payable[] memory _recipients, uint256[] memory _amounts, int16 spec, address royaltyAddress, bool addToCache) {
             if (addToCache) _specCache[royaltyAddress] = spec;
             return (_recipients, _amounts);
         } catch {
