@@ -1,6 +1,6 @@
 ## Royalty Registry for any Marketplace
 
-The Royalty Registry was developed in conjunction with Foundation, manifold.xyz, Nifty Gateway, OpenSea, Rariblee, SuperRare and Zora.
+The Royalty Registry was developed in conjunction with Foundation, manifold.xyz, Nifty Gateway, OpenSea, Rarible, SuperRare and Zora.
 
 Please visit https://royaltyregistry.xyz for Registry and Engine deployment locations for each network.
 
