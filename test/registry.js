@@ -431,5 +431,3 @@ contract('Registry', function ([...accounts]) {
 
   });
 });
-
-

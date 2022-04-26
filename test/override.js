@@ -174,4 +174,3 @@ contract('Registry', function ([...accounts]) {
 
   });
 });
-
