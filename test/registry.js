@@ -19,6 +19,7 @@ const MockArtBlocks = artifacts.require("MockArtBlocks");
 const MockArtBlocksOverride = artifacts.require("MockArtBlocksOverride");
 const MockERC1155PresetMinterPauser = artifacts.require("MockERC1155PresetMinterPauser");
 const MockZora = artifacts.require("ZoraOverride");
+const MockKodaV2Override = artifacts.require("MockKODAV2Override");
 
 contract('Registry', function ([...accounts]) {
   const [
@@ -55,6 +56,8 @@ contract('Registry', function ([...accounts]) {
     var mockArtBlocksOverride;
     var mockERC1155PresetMinterPauser;
     var mockZora;
+    var mockKodaV2Override;
+    var mockKodaV2;
 
     beforeEach(async function () {
       registry = await deployProxy(RoyaltyRegistry, {initializer: "initialize", from:owner});
@@ -76,6 +79,8 @@ contract('Registry', function ([...accounts]) {
       mockArtBlocksOverride = await MockArtBlocksOverride.new({from: artBlocksDeployer});
       mockERC1155PresetMinterPauser = await MockERC1155PresetMinterPauser.new({ from: erc1155PresetDeployer });
       mockZora = await MockZora.new();
+      mockKodaV2 = await MockContract.new({from: defaultDeployer});
+      mockKodaV2Override = await MockKodaV2Override.new();
     });
 
     it('override test', async function () {
@@ -101,6 +106,7 @@ contract('Registry', function ([...accounts]) {
       assert.equal(false, await registry.overrideAllowed(mockArtBlocks.address, {from:random}));
       assert.equal(false, await registry.overrideAllowed(mockERC1155PresetMinterPauser.address, { from: random }));
       assert.equal(false, await registry.overrideAllowed(mockZora.address, { from: random }));
+      assert.equal(false, await registry.overrideAllowed(mockKodaV2Override.address, { from: random }));
 
       assert.equal(true, await registry.overrideAllowed(mockManifold.address, {from:manifoldDeployer}));
       assert.equal(true, await registry.overrideAllowed(mockFoundation.address, {from:foundationDeployer}));
@@ -112,9 +118,10 @@ contract('Registry', function ([...accounts]) {
       assert.equal(true, await registry.overrideAllowed(mockArtBlocks.address, {from:artBlocksDeployer}));
       assert.equal(true, await registry.overrideAllowed(mockERC1155PresetMinterPauser.address, { from: erc1155PresetDeployer }));
       assert.equal(true, await registry.overrideAllowed(mockZora.address, { from: owner }))
+      assert.equal(true, await registry.overrideAllowed(mockKodaV2Override.address, { from: owner }))
     })
 
-    it('getRoyalty test', async function () {
+    it.only('getRoyalty test', async function () {
       engine = await deployProxy(RoyaltyEngineV1, [registry.address], {initializer: "initialize", from:owner});
 
       var unallocatedTokenId = 1;
@@ -230,6 +237,14 @@ contract('Registry', function ([...accounts]) {
       assert.equal(result[0][0], defaultDeployer);
       assert.deepEqual(result[1][0], web3.utils.toBN(value*unallocatedBps/10000));
 
+      // Override royalty logic for KODAV2
+      await registry.setRoyaltyLookupAddress(mockKodaV2.address, mockKodaV2Override.address, {from: owner});
+      const royaltyLookupAddress = await registry.getRoyaltyLookupAddress(mockKodaV2.address);
+      assert.deepEqual(royaltyLookupAddress, mockKodaV2Override.address);
+      result = await engine.getRoyaltyView(mockKodaV2.address, unallocatedTokenId, value);
+      assert.equal(result[0].length, 2);
+      assert.equal(result[1].length, 2)
+
       // Simulate paying a royalty and check gas cost
       await mockRoyaltyPayer.deposit({from:owner, value:value*100})
       var tx;
@@ -249,6 +264,8 @@ contract('Registry', function ([...accounts]) {
       console.log("Payout gas used with override: %s", tx.receipt.gasUsed);
       tx = await mockRoyaltyPayer.payout(engine.address, mockArtBlocksOverride.address, artBlocksTokenId, value);
       console.log("Payout gas used with art blocks override: %s", tx.receipt.gasUsed);
+      tx = await mockRoyaltyPayer.payout(engine.address, mockKodaV2Override.address, unallocatedTokenId, value);
+      console.log("Payout gas used with KODA V2 override: %s", tx.receipt.gasUsed);
 
       // Simulate after running cache
       await engine.getRoyalty(mockManifold.address, manifoldTokenId, value)
@@ -257,6 +274,10 @@ contract('Registry', function ([...accounts]) {
       await engine.getRoyalty(mockRaribleV2.address, raribleV2TokenId, value)
       await engine.getRoyalty(mockEIP2981.address, eip2981TokenId, value)
       await engine.getRoyalty(mockArtBlocksOverride.address, artBlocksTokenId, value)
+
+      await engine.getRoyalty(mockKodaV2Override.address, unallocatedTokenId, value);
+      assert.equal(await engine.getCachedRoyaltySpec(mockKodaV2.address), 9);
+
       await mockRoyaltyPayer.payout(engine.address, mockContract.address, unallocatedTokenId, value);
       tx = await mockRoyaltyPayer.payout(engine.address, mockContract.address, 1, value);
       console.log("CACHE: Payout gas no royalties: %s", tx.receipt.gasUsed);
@@ -274,6 +295,8 @@ contract('Registry', function ([...accounts]) {
       console.log("CACHE: Payout gas used with override: %s", tx.receipt.gasUsed);
       tx = await mockRoyaltyPayer.payout(engine.address, mockArtBlocksOverride.address, artBlocksTokenId, value);
       console.log("CACHE: Payout gas used with art blocks override: %s", tx.receipt.gasUsed);
+      tx = await mockRoyaltyPayer.payout(engine.address, mockKodaV2Override.address, unallocatedTokenId, value);
+      console.log("CACHE: Payout gas used with KODA V2 override: %s", tx.receipt.gasUsed);
 
       // Foundation override test
       await truffleAssert.reverts(registry.setRoyaltyLookupAddress(mockFoundation.address, mockManifold.address, {from: random}));
@@ -299,7 +322,6 @@ contract('Registry', function ([...accounts]) {
       assert.equal(await engine.getCachedRoyaltySpec(mockEIP2981.address), 5);
       await engine.invalidateCachedRoyaltySpec(mockEIP2981.address, {from:random});
       assert.equal(await engine.getCachedRoyaltySpec(mockEIP2981.address), 0);
-      
     });
 
     it('invalid royalties test', async function () {

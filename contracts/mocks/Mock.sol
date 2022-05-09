@@ -16,6 +16,7 @@ import "../specs/INiftyGateway.sol";
 import "../specs/IDigitalax.sol";
 import "../specs/IArtBlocks.sol";
 import "../specs/IArtBlocksOverride.sol";
+import "../specs/IKODAV2Override.sol";
 import "../IRoyaltyEngineV1.sol";
 
 /**
@@ -262,4 +263,55 @@ contract MockRoyaltyPayer {
             recipients[i].transfer(amounts[i]);
         }
     }
+}
+
+
+/// Mock KODA V2 based on real world configs for a dual split of edition ID 575500
+/// KO V2 is old and only has a a primary sale fee concept, we can however determine the secondary sale royalty
+/// In this mock we see two splits, one getting 84% of primary and another getting 1% of primary, from these
+/// values you can extrapolate any future royalty values
+contract MockKODAV2 is IKODAV2 {
+    function editionOfTokenId(uint256 _tokenId) external override pure returns (uint256 _editionNumber) {
+        // Allow for unknown edition ID logic checks
+        if(_tokenId == 0) return 0;
+        return 575501;
+    }
+
+    function artistCommission(uint256 /*_editionNumber*/) external override pure returns (address _artistAccount, uint256 _artistCommission) {
+        return (0x3f8C962eb167aD2f80C72b5F933511CcDF0719D4, 84);
+    }
+
+    function editionOptionalCommission(uint256 /*_editionNumber*/) external override pure returns (uint256 _rate, address _recipient) {
+        return (1, 0xEEedc9941fb405D1ea90E6FD37d482C361e89Acd);
+    }
+}
+
+/// Mock override for testing the registry only
+contract MockKODAV2Override is IKODAV2Override {
+
+    address public admin;
+    uint256 public creatorRoyaltiesFee = 10_00000;
+
+    constructor() {
+        admin = msg.sender;
+    }
+
+    function getKODAV2RoyaltyInfo(address /*tokenAddress*/, uint256 /*id*/, uint256 _amount)
+    external
+    override
+    view
+    returns (address payable[] memory receivers, uint256[] memory amounts) {
+        // Simple 50/50 splt between two addresses for this mock
+        receivers = new address payable[](2);
+        amounts = new uint256[](2);
+        receivers[0] = payable(admin);
+        receivers[1] = payable(admin);
+        amounts[0] = (_amount / creatorRoyaltiesFee) * 5;
+        amounts[1] = (_amount / creatorRoyaltiesFee) * 5;
+    }
+
+    function updateCreatorRoyalties(uint256 _creatorRoyaltiesFee) external override {
+        creatorRoyaltiesFee = _creatorRoyaltiesFee;
+    }
+
 }

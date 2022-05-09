@@ -18,6 +18,7 @@ import "./specs/ISuperRare.sol";
 import "./specs/IEIP2981.sol";
 import "./specs/IZoraOverride.sol";
 import "./specs/IArtBlocksOverride.sol";
+import "./specs/IKODAV2Override.sol";
 import "./IRoyaltyEngineV1.sol";
 import "./IRoyaltyRegistry.sol";
 
@@ -40,6 +41,7 @@ contract RoyaltyEngineV1 is ERC165, OwnableUpgradeable, IRoyaltyEngineV1 {
     int16 constant private SUPERRARE = 6;
     int16 constant private ZORA = 7;
     int16 constant private ARTBLOCKS = 8;
+    int16 constant private KNOWNORIGINV2 = 9;
 
     mapping (address => int16) _specCache;
 
@@ -71,14 +73,14 @@ contract RoyaltyEngineV1 is ERC165, OwnableUpgradeable, IRoyaltyEngineV1 {
      */
     function getCachedRoyaltySpec(address tokenAddress) public view returns(int16) {
         address royaltyAddress = IRoyaltyRegistry(royaltyRegistry).getRoyaltyLookupAddress(tokenAddress);
-        return _specCache[royaltyAddress];    
+        return _specCache[royaltyAddress];
     }
 
     /**
      * @dev See {IRoyaltyEngineV1-getRoyalty}
      */
     function getRoyalty(address tokenAddress, uint256 tokenId, uint256 value) public override returns(address payable[] memory recipients, uint256[] memory amounts) {
-        // External call to limit gas 
+        // External call to limit gas
         try this._getRoyaltyAndSpec{gas: 100000}(tokenAddress, tokenId, value) returns (address payable[] memory _recipients, uint256[] memory _amounts, int16 spec, address royaltyAddress, bool addToCache) {
             if (addToCache) _specCache[royaltyAddress] = spec;
             return (_recipients, _amounts);
@@ -91,7 +93,7 @@ contract RoyaltyEngineV1 is ERC165, OwnableUpgradeable, IRoyaltyEngineV1 {
      * @dev See {IRoyaltyEngineV1-getRoyaltyView}.
      */
     function getRoyaltyView(address tokenAddress, uint256 tokenId, uint256 value) public view override returns(address payable[] memory recipients, uint256[] memory amounts) {
-        // External call to limit gas 
+        // External call to limit gas
         try this._getRoyaltyAndSpec{gas: 100000}(tokenAddress, tokenId, value) returns (address payable[] memory _recipients, uint256[] memory _amounts, int16, address, bool) {
             return (_recipients, _amounts);
         } catch {
@@ -101,8 +103,8 @@ contract RoyaltyEngineV1 is ERC165, OwnableUpgradeable, IRoyaltyEngineV1 {
 
     /**
      * @dev Get the royalty and royalty spec for a given token
-     * 
-     * returns recipieints array, amounts array, royalty spec, royalty address, whether or not to add to cache
+     *
+     * returns recipients array, amounts array, royalty spec, royalty address, whether or not to add to cache
      */
     function _getRoyaltyAndSpec(address tokenAddress, uint256 tokenId, uint256 value) external view returns(address payable[] memory recipients, uint256[] memory amounts, int16 spec, address royaltyAddress, bool addToCache) {
         require(msg.sender == address(this), "Only Engine");
@@ -122,7 +124,7 @@ contract RoyaltyEngineV1 is ERC165, OwnableUpgradeable, IRoyaltyEngineV1 {
                         amounts = new uint256[](1);
                         recipients[0] = creator;
                         amounts[0] = amount;
-                        return (recipients, amounts, SUPERRARE, royaltyAddress, addToCache);                        
+                        return (recipients, amounts, SUPERRARE, royaltyAddress, addToCache);
                     } catch {}
                 } catch {}
             }
@@ -175,6 +177,11 @@ contract RoyaltyEngineV1 is ERC165, OwnableUpgradeable, IRoyaltyEngineV1 {
                 // Support Art Blocks override
                 require(recipients_.length == bps.length);
                 return (recipients_, _computeAmounts(value, bps), ARTBLOCKS, royaltyAddress, addToCache);
+            } catch {}
+            try IKODAV2Override(royaltyAddress).getKODAV2RoyaltyInfo(tokenAddress, tokenId, value) returns(address payable[] memory _recipients, uint256[] memory _amounts) {
+                // Support KODA V2 override
+                require(_recipients.length == _amounts.length);
+                return (_recipients, _amounts, KNOWNORIGINV2, royaltyAddress, addToCache);
             } catch {}
 
             // No supported royalties configured
@@ -234,19 +241,23 @@ contract RoyaltyEngineV1 is ERC165, OwnableUpgradeable, IRoyaltyEngineV1 {
                 amounts = new uint256[](1);
                 recipients[0] = creator;
                 amounts[0] = amount;
-                return (recipients, amounts, spec, royaltyAddress, addToCache);            
+                return (recipients, amounts, spec, royaltyAddress, addToCache);
             } else if (spec == ZORA) {
                 // Zora spec
                 uint256[] memory bps;
                 (recipients, bps) = IZoraOverride(royaltyAddress).convertBidShares(tokenAddress, tokenId);
                 require(recipients.length == bps.length);
-                return (recipients, _computeAmounts(value, bps), spec, royaltyAddress, addToCache);          
+                return (recipients, _computeAmounts(value, bps), spec, royaltyAddress, addToCache);
             } else if (spec == ARTBLOCKS) {
                 // Art Blocks spec
                 uint256[] memory bps;
                 (recipients, bps) = IArtBlocksOverride(royaltyAddress).getRoyalties(tokenAddress, tokenId);
                 require(recipients.length == bps.length);
                 return (recipients, _computeAmounts(value, bps), spec, royaltyAddress, addToCache);
+            } else if (spec == KNOWNORIGINV2) {
+                // KnownOrigin.io V2 spec (V3 falls under EIP2981)
+                (recipients, amounts) = IKODAV2Override(royaltyAddress).getKODAV2RoyaltyInfo(tokenAddress, tokenId, value);
+                return (recipients, amounts, spec, royaltyAddress, addToCache);
             }
         }
     }
