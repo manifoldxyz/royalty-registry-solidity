@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.0;
 
-/// @author: manifold.xyz
+/// @author: knownorigin.io
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";

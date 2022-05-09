@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: MIT
 
+/// @author: knownorigin.io
+
 pragma solidity ^0.8.0;
 
 interface IKODAV2 {
