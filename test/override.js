@@ -18,6 +18,7 @@ contract('Registry', function ([...accounts]) {
     another4,
     another5,
     another6,
+    indirectOwner
   ] = accounts;
 
   describe('Override', function() {
@@ -27,6 +28,8 @@ contract('Registry', function ([...accounts]) {
     var override;
     var overrideCloneable;
     var overrideFactory;
+    var mockDirectOwnerContract;
+    var mockIndirectlyOwnedContract;
 
     beforeEach(async function () {
       registry = await deployProxy(RoyaltyRegistry, {initializer: "initialize", from:owner});
@@ -34,6 +37,10 @@ contract('Registry', function ([...accounts]) {
       override = await EIP2981RoyaltyOverride.new({from: admin});
       overrideCloneable = await EIP2981RoyaltyOverrideCloneable.new();
       overrideFactory = await EIP2981RoyaltyOverrideFactory.new(overrideCloneable.address);
+
+      mockIndirectlyOwnedContract = await MockContract.new({from: indirectOwner});
+      mockDirectOwnerContract = await MockContract.new({from: indirectOwner});
+      await mockIndirectlyOwnedContract.transferOwnership(mockDirectOwnerContract.address, { from: indirectOwner });
     });
 
     it('override test', async function () {
@@ -79,6 +86,17 @@ contract('Registry', function ([...accounts]) {
       assert.equal(result[1].length, 1);
       assert.deepEqual(result[1][0], web3.utils.toBN(value*100/10000));
 
+      result = await engine.getRoyaltyView(mockIndirectlyOwnedContract.address, 1, value);
+      assert.equal(result[0].length, 0);
+      assert.equal(result[1].length, 0);
+
+      await registry.setRoyaltyLookupAddress(mockIndirectlyOwnedContract.address, override.address, {from: indirectOwner});
+      result = await engine.getRoyaltyView(mockIndirectlyOwnedContract.address, 1, value);
+      assert.equal(result[0].length, 1);
+      assert.equal(result[0][0], another1);
+      assert.equal(result[1].length, 1);
+      assert.deepEqual(result[1][0], web3.utils.toBN(value*100/10000));
+
       // Creating override clone
       var tx = await overrideFactory.createOverride({from:admin});
       console.log("Create override gas used: %s", tx.receipt.gasUsed);
@@ -117,14 +135,41 @@ contract('Registry', function ([...accounts]) {
       assert.deepEqual(result[1][0], web3.utils.toBN(value*500/10000));
       assert.equal(2, await clone.getTokenRoyaltiesCount());
 
+      await registry.setRoyaltyLookupAddress(mockIndirectlyOwnedContract.address, clone.address, {from: indirectOwner});
+      result = await engine.getRoyaltyView(mockIndirectlyOwnedContract.address, 3, value);
+      assert.equal(result[0].length, 1);
+      assert.equal(result[0][0], another3);
+      assert.equal(result[1].length, 1);
+      assert.deepEqual(result[1][0], web3.utils.toBN(value*300/10000));
+      result = await engine.getRoyaltyView(mockIndirectlyOwnedContract.address, 1, value);
+      assert.equal(result[0].length, 1);
+      assert.equal(result[0][0], another4);
+      assert.equal(result[1].length, 1);
+      assert.deepEqual(result[1][0], web3.utils.toBN(value*400/10000));
+      result = await engine.getRoyaltyView(mockIndirectlyOwnedContract.address, 5, value);
+      assert.equal(result[0].length, 1);
+      assert.equal(result[0][0], another5);
+      assert.equal(result[1].length, 1);
+      assert.deepEqual(result[1][0], web3.utils.toBN(value*500/10000));
+      assert.equal(2, await clone.getTokenRoyaltiesCount());
+
       // Test per token deletion, will go back to default
-      await clone.setTokenRoyalties([[5, '0x0000000000000000000000000000000000000000', 0]], {from:admin})
+      await clone.setTokenRoyalties([[5, '0x0000000000000000000000000000000000000000', 0]], {from:admin});
       result = await engine.getRoyaltyView(mockContract.address, 5, value);
       assert.equal(result[0].length, 1);
       assert.equal(result[0][0], another4);
       assert.equal(result[1].length, 1);
       assert.deepEqual(result[1][0], web3.utils.toBN(value*400/10000));
-      assert.equal(1, await clone.getTokenRoyaltiesCount())
+      assert.equal(1, await clone.getTokenRoyaltiesCount());
+
+      // Test per token deletion, will go back to default
+      await clone.setTokenRoyalties([[5, '0x0000000000000000000000000000000000000000', 0]], {from:admin});
+      result = await engine.getRoyaltyView(mockIndirectlyOwnedContract.address, 5, value);
+      assert.equal(result[0].length, 1);
+      assert.equal(result[0][0], another4);
+      assert.equal(result[1].length, 1);
+      assert.deepEqual(result[1][0], web3.utils.toBN(value*400/10000));
+      assert.equal(1, await clone.getTokenRoyaltiesCount());
     });
 
   });

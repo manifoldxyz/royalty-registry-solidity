@@ -69,6 +69,12 @@ contract RoyaltyRegistry is ERC165, OwnableUpgradeable, IRoyaltyRegistry {
 
         try OwnableUpgradeable(tokenAddress).owner() returns (address owner) {
             if (owner == _msgSender()) return true;
+
+            if (owner.isContract()) {
+              try OwnableUpgradeable(owner).owner() returns (address passThroughOwner) {
+                  if (passThroughOwner == _msgSender()) return true;
+              } catch {}
+            }
         } catch {}
 
         try IAccessControlUpgradeable(tokenAddress).hasRole(0x00, _msgSender()) returns (bool hasRole) {
