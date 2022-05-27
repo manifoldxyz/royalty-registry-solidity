@@ -34,6 +34,7 @@ contract('Registry', function ([...accounts]) {
     niftyDeployer,
     artBlocksDeployer,
     erc1155PresetDeployer,
+    indirectOwner
   ] = accounts;
 
   describe('Registry', function() {
@@ -56,6 +57,8 @@ contract('Registry', function ([...accounts]) {
     var mockArtBlocksOverride;
     var mockERC1155PresetMinterPauser;
     var mockZora;
+    var mockIndirectlyOwnedContract;
+    var mockDirectOwnerContract;
     var mockKodaV2Override;
     var mockKodaV2;
 
@@ -79,6 +82,8 @@ contract('Registry', function ([...accounts]) {
       mockArtBlocksOverride = await MockArtBlocksOverride.new({from: artBlocksDeployer});
       mockERC1155PresetMinterPauser = await MockERC1155PresetMinterPauser.new({ from: erc1155PresetDeployer });
       mockZora = await MockZora.new();
+      mockIndirectlyOwnedContract = await MockContract.new({from: defaultDeployer});
+      mockDirectOwnerContract = await MockContract.new({from: defaultDeployer});
       mockKodaV2 = await MockContract.new({from: defaultDeployer});
       mockKodaV2Override = await MockKodaV2Override.new();
     });
@@ -91,6 +96,10 @@ contract('Registry', function ([...accounts]) {
       await registry.setRoyaltyLookupAddress(mockContract.address, mockManifold.address, {from: owner});
       await registry.setRoyaltyLookupAddress(mockManifold.address, mockFoundation.address, { from: manifoldDeployer });
       await registry.setRoyaltyLookupAddress(mockContract.address, mockZora.address, { from: owner });
+
+      await mockIndirectlyOwnedContract.transferOwnership(mockDirectOwnerContract.address, { from: defaultDeployer });
+      await mockDirectOwnerContract.transferOwnership(indirectOwner, { from: defaultDeployer });
+      await registry.setRoyaltyLookupAddress(mockIndirectlyOwnedContract.address, mockManifold.address, { from: owner });
     });
 
     it('permissions test', async function() {
@@ -106,6 +115,7 @@ contract('Registry', function ([...accounts]) {
       assert.equal(false, await registry.overrideAllowed(mockArtBlocks.address, {from:random}));
       assert.equal(false, await registry.overrideAllowed(mockERC1155PresetMinterPauser.address, { from: random }));
       assert.equal(false, await registry.overrideAllowed(mockZora.address, { from: random }));
+      assert.equal(false, await registry.overrideAllowed(mockIndirectlyOwnedContract.address, { from: indirectOwner }));
       assert.equal(false, await registry.overrideAllowed(mockKodaV2Override.address, { from: random }));
 
       assert.equal(true, await registry.overrideAllowed(mockManifold.address, {from:manifoldDeployer}));
@@ -118,8 +128,13 @@ contract('Registry', function ([...accounts]) {
       assert.equal(true, await registry.overrideAllowed(mockArtBlocks.address, {from:artBlocksDeployer}));
       assert.equal(true, await registry.overrideAllowed(mockERC1155PresetMinterPauser.address, { from: erc1155PresetDeployer }));
       assert.equal(true, await registry.overrideAllowed(mockZora.address, { from: owner }))
+
       assert.equal(true, await registry.overrideAllowed(mockKodaV2Override.address, { from: owner }))
-    })
+
+      await mockIndirectlyOwnedContract.transferOwnership(mockDirectOwnerContract.address, { from: defaultDeployer });
+      await mockDirectOwnerContract.transferOwnership(indirectOwner, { from: defaultDeployer });
+      assert.equal(true, await registry.overrideAllowed(mockIndirectlyOwnedContract.address, { from: indirectOwner }));
+    });
 
     it.only('getRoyalty test', async function () {
       engine = await deployProxy(RoyaltyEngineV1, [registry.address], {initializer: "initialize", from:owner});
@@ -131,6 +146,7 @@ contract('Registry', function ([...accounts]) {
       var raribleV2TokenId = 5;
       var eip2981TokenId = 6;
       var artBlocksTokenId = 7;
+      var indirectlyOwnedTokenId = 8;
 
       var unallocatedBps = 100;
       var manifoldBps = 200;
@@ -139,6 +155,7 @@ contract('Registry', function ([...accounts]) {
       var raribleV2Bps = 500;
       var eip2981Bps = 600;
       var randomBps = 100;
+      var indirectlyOwnedTokenBps = 500;
 
       var value = 10000;
       var result;
@@ -179,7 +196,6 @@ contract('Registry', function ([...accounts]) {
       assert.deepEqual(result[1][0], web3.utils.toBN(value*raribleV2Bps/10000));
       assert.equal(result[0][1], random);
       assert.deepEqual(result[1][1], web3.utils.toBN(value*randomBps/10000));
-
 
       await mockManifold.setRoyalties(manifoldTokenId, [manifoldDeployer], [manifoldBps]);
       await mockFoundation.setRoyalties(foundationTokenId, [foundationDeployer], [foundationBps]);
@@ -225,9 +241,20 @@ contract('Registry', function ([...accounts]) {
       assert.equal(result[0].length, 0);
       assert.equal(result[1].length, 0);
 
+      result = await engine.getRoyaltyView(mockIndirectlyOwnedContract.address, indirectlyOwnedTokenId, value);
+      assert.equal(result[0].length, 0);
+      assert.equal(result[1].length, 0);
+
       // Override royalty logic
       await registry.setRoyaltyLookupAddress(mockContract.address, mockManifold.address, {from: defaultDeployer});
       result = await engine.getRoyaltyView(mockContract.address, unallocatedTokenId, value);
+      assert.equal(result[0].length, 0);
+      assert.equal(result[1].length, 0);
+
+      await mockIndirectlyOwnedContract.transferOwnership(mockDirectOwnerContract.address, { from: defaultDeployer });
+      await mockDirectOwnerContract.transferOwnership(indirectOwner, { from: defaultDeployer });
+      await registry.setRoyaltyLookupAddress(mockIndirectlyOwnedContract.address, mockManifold.address, {from: indirectOwner});
+      result = await engine.getRoyaltyView(mockIndirectlyOwnedContract.address, indirectlyOwnedTokenId, value);
       assert.equal(result[0].length, 0);
       assert.equal(result[1].length, 0);
 
@@ -244,6 +271,11 @@ contract('Registry', function ([...accounts]) {
       result = await engine.getRoyaltyView(mockKodaV2.address, unallocatedTokenId, value);
       assert.equal(result[0].length, 2);
       assert.equal(result[1].length, 2)
+
+      await mockManifold.setRoyalties(indirectlyOwnedTokenId, [indirectOwner], [indirectlyOwnedTokenBps]);
+      result = await engine.getRoyaltyView(mockIndirectlyOwnedContract.address, indirectlyOwnedTokenId, value);
+      assert.equal(result[0][0], indirectOwner);
+      assert.deepEqual(result[1][0], web3.utils.toBN(value*indirectlyOwnedTokenBps/10000));
 
       // Simulate paying a royalty and check gas cost
       await mockRoyaltyPayer.deposit({from:owner, value:value*100})
@@ -267,6 +299,14 @@ contract('Registry', function ([...accounts]) {
       tx = await mockRoyaltyPayer.payout(engine.address, mockKodaV2Override.address, unallocatedTokenId, value);
       console.log("Payout gas used with KODA V2 override: %s", tx.receipt.gasUsed);
 
+      var indirectOwnerBalanceBefore = BigInt(await web3.eth.getBalance(indirectOwner));
+      tx = await mockRoyaltyPayer.payout(engine.address, mockIndirectlyOwnedContract.address, indirectlyOwnedTokenId, value);
+      console.log("Payout gas used with indirect override: %s", tx.receipt.gasUsed);
+      var indirectOwnerBalanceAfter = BigInt(await web3.eth.getBalance(indirectOwner));
+      var balanceDiff = indirectOwnerBalanceAfter - indirectOwnerBalanceBefore;
+      balanceDiff = Number(balanceDiff);
+      assert.equal(balanceDiff, value*indirectlyOwnedTokenBps/10000);
+
       // Simulate after running cache
       await engine.getRoyalty(mockManifold.address, manifoldTokenId, value)
       await engine.getRoyalty(mockFoundation.address, foundationTokenId, value)
@@ -277,6 +317,8 @@ contract('Registry', function ([...accounts]) {
 
       await engine.getRoyalty(mockKodaV2Override.address, unallocatedTokenId, value);
       assert.equal(await engine.getCachedRoyaltySpec(mockKodaV2.address), 9);
+
+      await engine.getRoyalty(mockIndirectlyOwnedContract.address, indirectlyOwnedTokenId, value)
 
       await mockRoyaltyPayer.payout(engine.address, mockContract.address, unallocatedTokenId, value);
       tx = await mockRoyaltyPayer.payout(engine.address, mockContract.address, 1, value);
@@ -295,6 +337,17 @@ contract('Registry', function ([...accounts]) {
       console.log("CACHE: Payout gas used with override: %s", tx.receipt.gasUsed);
       tx = await mockRoyaltyPayer.payout(engine.address, mockArtBlocksOverride.address, artBlocksTokenId, value);
       console.log("CACHE: Payout gas used with art blocks override: %s", tx.receipt.gasUsed);
+      tx = await mockRoyaltyPayer.payout(engine.address, mockIndirectlyOwnedContract.address, indirectlyOwnedTokenId, value);
+      console.log("CACHE: Payout gas used with override: %s", tx.receipt.gasUsed);
+
+      indirectOwnerBalanceBefore = BigInt(await web3.eth.getBalance(indirectOwner));
+      tx = await mockRoyaltyPayer.payout(engine.address, mockIndirectlyOwnedContract.address, indirectlyOwnedTokenId, value);
+      console.log("Payout gas used with indirect override: %s", tx.receipt.gasUsed);
+      indirectOwnerBalanceAfter = BigInt(await web3.eth.getBalance(indirectOwner));
+      balanceDiff = indirectOwnerBalanceAfter - indirectOwnerBalanceBefore;
+      balanceDiff = Number(balanceDiff);
+      assert.equal(balanceDiff, value*indirectlyOwnedTokenBps/10000);
+
       tx = await mockRoyaltyPayer.payout(engine.address, mockKodaV2Override.address, unallocatedTokenId, value);
       console.log("CACHE: Payout gas used with KODA V2 override: %s", tx.receipt.gasUsed);
 
@@ -334,7 +387,6 @@ contract('Registry', function ([...accounts]) {
       var raribleV2TokenId = 5;
       var eip2981TokenId = 6;
       var artBlocksTokenId = 7;
-
 
       await mockManifold.setRoyalties(manifoldTokenId, [manifoldDeployer], [10000]);
       await mockFoundation.setRoyalties(foundationTokenId, [foundationDeployer], [10000]);
@@ -376,6 +428,7 @@ contract('Registry', function ([...accounts]) {
       await mockRoyaltyPayer.payout(engine.address, mockRaribleV2.address, raribleV2TokenId, value);
       await mockRoyaltyPayer.payout(engine.address, mockEIP2981.address, eip2981TokenId, value);
       await mockRoyaltyPayer.payout(engine.address, mockArtBlocksOverride.address, artBlocksTokenId, value);
+      await mockRoyaltyPayer.payout(engine.address, mockIndirectlyOwnedContract.address, 1, value);
 
       // Simulate after running cache
       await engine.getRoyalty(mockManifold.address, manifoldTokenId, value)
@@ -399,7 +452,6 @@ contract('Registry', function ([...accounts]) {
       await truffleAssert.reverts(engine.getRoyaltyView(mockRaribleV2.address, raribleV2TokenId, value), "Invalid royalty amount");
       await truffleAssert.reverts(engine.getRoyaltyView(mockEIP2981.address, eip2981TokenId, value), "Invalid royalty amount");
       await truffleAssert.reverts(engine.getRoyaltyView(mockArtBlocksOverride.address, artBlocksTokenId, value), "Invalid royalty amount");
-
     });
 
   });
