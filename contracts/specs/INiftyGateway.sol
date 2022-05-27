@@ -3,18 +3,13 @@
 pragma solidity ^0.8.0;
 
 /**
- * @dev Nifty builder instance
+ * @dev Nifty legacy registry
  */
-interface INiftyBuilderInstance {
-   function niftyRegistryContract() external view returns (address);
-}
-
-/**
- * @dev Nifty registry
- */
-interface INiftyRegistry {
+interface INiftyLegacyRegistry {
     /**
-     * @dev function to see if sending key is valid
+     * @dev Get royalites of a token
+     * @return listBeneficiary adresses of royalty receivers 
+     * @return listAmount amount to be paid to corresponding receiver
      */
-    function isValidNiftySender(address sending_key) external view returns (bool);
+    function royaltyInfo(address tokenAddress, uint256 tokenId, uint256 salePrice) external view returns(address payable[] memory, uint256[] memory);
 }

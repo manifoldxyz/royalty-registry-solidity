@@ -40,15 +40,19 @@ contract RoyaltyEngineV1 is ERC165, OwnableUpgradeable, IRoyaltyEngineV1 {
     int16 constant private SUPERRARE = 6;
     int16 constant private ZORA = 7;
     int16 constant private ARTBLOCKS = 8;
+    int16 constant private NIFTY_GATEWAY = 9;
 
     mapping (address => int16) _specCache;
 
     address public royaltyRegistry;
 
-    function initialize(address royaltyRegistry_) public initializer {
+    address immutable public niftyLegacyRegistry;
+
+    function initialize(address royaltyRegistry_, address niftyLegacyRegistry_) public initializer {
         __Ownable_init_unchained();
         require(ERC165Checker.supportsInterface(royaltyRegistry_, type(IRoyaltyRegistry).interfaceId));
         royaltyRegistry = royaltyRegistry_;
+        niftyLegacyRegistry = niftyLegacyRegistry_;
     }
 
     /**
@@ -175,6 +179,11 @@ contract RoyaltyEngineV1 is ERC165, OwnableUpgradeable, IRoyaltyEngineV1 {
                 // Support Art Blocks override
                 require(recipients_.length == bps.length);
                 return (recipients_, _computeAmounts(value, bps), ARTBLOCKS, royaltyAddress, addToCache);
+            } catch {}
+            try INiftyLegacyRegistry(niftyLegacyRegistry).royaltyInfo(tokenAddress, tokenId, value) returns(address payable[] memory recipients_, uint256[] memory computedAmounts) {
+                // Support Nifty Gateway override
+                require(recipients_.length == bps.length);
+                return (recipients_, computedAmounts, NIFTY_GATEWAY, royaltyAddress, addToCache);
             } catch {}
 
             // No supported royalties configured
