@@ -136,7 +136,7 @@ contract('Registry', function ([...accounts]) {
       assert.equal(true, await registry.overrideAllowed(mockIndirectlyOwnedContract.address, { from: indirectOwner }));
     });
 
-    it.only('getRoyalty test', async function () {
+    it('getRoyalty test', async function () {
       engine = await deployProxy(RoyaltyEngineV1, [registry.address], {initializer: "initialize", from:owner});
 
       var unallocatedTokenId = 1;
