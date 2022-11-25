@@ -19,13 +19,15 @@ import "./specs/IEIP2981.sol";
 import "./specs/IZoraOverride.sol";
 import "./specs/IArtBlocksOverride.sol";
 import "./specs/IKODAV2Override.sol";
+import "./specs/IRoyaltyLookUp.sol";
 import "./IRoyaltyEngineV1.sol";
 import "./IRoyaltyRegistry.sol";
+import "./IFallbackable.sol";
 
 /**
  * @dev Engine to lookup royalty configurations
  */
-contract RoyaltyEngineV2 is ERC165, OwnableUpgradeable, IRoyaltyEngineV1 {
+contract RoyaltyEngineV2 is ERC165, OwnableUpgradeable, IRoyaltyEngineV1, IFallbackable {
     using AddressUpgradeable for address;
 
     // Use int16 for specs to support future spec additions
@@ -42,15 +44,26 @@ contract RoyaltyEngineV2 is ERC165, OwnableUpgradeable, IRoyaltyEngineV1 {
     int16 constant private ZORA = 7;
     int16 constant private ARTBLOCKS = 8;
     int16 constant private KNOWNORIGINV2 = 9;
+    int16 constant private FALLBACK = type(int16).max;
 
     mapping (address => int16) _specCache;
 
     address public royaltyRegistry;
+    address public fallbackRoyaltyLookup; //v2
 
     function initialize(address royaltyRegistry_) public initializer {
         __Ownable_init_unchained();
         require(ERC165Checker.supportsInterface(royaltyRegistry_, type(IRoyaltyRegistry).interfaceId));
         royaltyRegistry = royaltyRegistry_;
+    }
+
+    ///@inheritdoc IFallbackable
+    function setFallbackRoyaltyLookup(address fallbackRoyaltyLookup_)
+        external
+        override
+        onlyOwner
+    {
+        fallbackRoyaltyLookup = fallbackRoyaltyLookup_;
     }
 
     /**
@@ -183,7 +196,27 @@ contract RoyaltyEngineV2 is ERC165, OwnableUpgradeable, IRoyaltyEngineV1 {
                 require(_recipients.length == _amounts.length);
                 return (_recipients, _amounts, KNOWNORIGINV2, royaltyAddress, addToCache);
             } catch {}
-
+            if (fallbackRoyaltyLookup != address(0)) {
+                try
+                    IRoyaltyLookUp(fallbackRoyaltyLookup).getRoyalties(
+                        tokenAddress,
+                        tokenId
+                    )
+                returns (
+                    address payable[] memory recipients_,
+                    uint256[] memory bps
+                ) {
+                    // Supports manifold interface.  Compute amounts
+                    require(recipients_.length == bps.length);
+                    return (
+                        recipients_,
+                        _computeAmounts(value, bps),
+                        FALLBACK,
+                        royaltyAddress,
+                        addToCache
+                    );
+                } catch {}
+            }
             // No supported royalties configured
             return (recipients, amounts, NONE, royaltyAddress, addToCache);
         } else {
@@ -197,7 +230,20 @@ contract RoyaltyEngineV2 is ERC165, OwnableUpgradeable, IRoyaltyEngineV1 {
                 (recipients, bps) = IManifold(royaltyAddress).getRoyalties(tokenId);
                 require(recipients.length == bps.length);
                 return (recipients, _computeAmounts(value, bps), spec, royaltyAddress, addToCache);
-            } else if (spec == RARIBLEV2) {
+            } else if (spec == FALLBACK) {
+                // Manifold spec
+                uint256[] memory bps;
+                (recipients, bps) = IRoyaltyLookUp(fallbackRoyaltyLookup)
+                    .getRoyalties(tokenAddress, tokenId);
+                require(recipients.length == bps.length);
+                return (
+                    recipients,
+                    _computeAmounts(value, bps),
+                    spec,
+                    royaltyAddress,
+                    addToCache
+                );
+            }else if (spec == RARIBLEV2) {
                 // Rarible v2 spec
                 IRaribleV2.Part[] memory royalties;
                 royalties = IRaribleV2(royaltyAddress).getRaribleV2Royalties(tokenId);

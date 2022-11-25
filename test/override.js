@@ -5,7 +5,7 @@ const EIP2981RoyaltyOverride = artifacts.require("EIP2981RoyaltyOverride");
 const EIP2981RoyaltyOverrideCloneable = artifacts.require("EIP2981RoyaltyOverrideCloneable");
 const EIP2981RoyaltyOverrideFactory = artifacts.require("EIP2981RoyaltyOverrideFactory");
 const RoyaltyRegistry = artifacts.require("RoyaltyRegistry");
-const RoyaltyEngineV1 = artifacts.require("RoyaltyEngineV1")
+const RoyaltyEngineV2 = artifacts.require("RoyaltyEngineV2")
 const MockContract = artifacts.require("MockContract");
 
 contract('Registry', function ([...accounts]) {
@@ -55,7 +55,7 @@ contract('Registry', function ([...accounts]) {
       await truffleAssert.reverts(override.setTokenRoyalties([[1, another1, 10000]], {from:admin}), "Invalid bps");
       await truffleAssert.reverts(override.setDefaultRoyalty([another1, 10000], {from:admin}), "Invalid bps");
 
-      engine = await deployProxy(RoyaltyEngineV1, [registry.address], {initializer: "initialize", from:owner});
+      engine = await deployProxy(RoyaltyEngineV2, [registry.address], {initializer: "initialize", from:owner});
       let value = 1000;
 
       let result = await override.royaltyInfo(1, value);

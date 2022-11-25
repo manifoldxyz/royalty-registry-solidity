@@ -68,6 +68,10 @@ As new standards are adopted, they can be added to the royalty engine.  If new s
 
 The royalty engine also contains a spec cache to make lookups faster.  The cache is filled only if getRoyaltyAndCacheSpec is called, which is only useable within another contract as it is a mutable function.
 
+#### v2
+
+The royalty engine has been update to a new version (v2), this version introduces a fallback lookup for collections without on chain royalty configuration. The primary source for the fallback data is the OpenSea off chain royalty dataset.
+
 #### Methods
 
 ---

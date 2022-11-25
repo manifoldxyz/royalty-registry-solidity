@@ -17,6 +17,7 @@ import "../specs/IDigitalax.sol";
 import "../specs/IArtBlocks.sol";
 import "../specs/IArtBlocksOverride.sol";
 import "../specs/IKODAV2Override.sol";
+import "../specs/IRoyaltyLookUp.sol";
 import "../IRoyaltyEngineV1.sol";
 
 /**
@@ -234,6 +235,31 @@ contract MockDigitalaxAccessControls is IDigitalaxAccessControls {
             bps[0] = totalRoyaltyBps*80/100;
             bps[1] = totalRoyaltyBps*20/100;
             // leave last slot as 0 bps
+        }
+ }
+
+ contract MockRoyaltyLookUp is IRoyaltyLookUp {
+     address _expectedCollection;
+     uint256 _expectedTokenId;
+     address payable[] private _recipients;
+     uint256[] private _bps;
+
+
+     function setTest(address expectedCollection, uint expectedTokenId, address payable[] calldata recipients, uint256[] calldata bps) external {
+         _expectedCollection = expectedCollection;
+         _expectedTokenId = expectedTokenId;
+         _recipients = recipients;
+         _bps = bps;
+     }
+
+     function getRoyalties(address tokenAddress, uint256 tokenId)
+        external
+        view
+        override
+        returns (address payable[] memory, uint256[] memory) {
+            require(tokenAddress == _expectedCollection, "Test:Wrong token address queried");
+            require(tokenId == _expectedTokenId, "Test:Wrong token id queried");
+            return (_recipients, _bps);
         }
  }
 

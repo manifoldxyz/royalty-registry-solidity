@@ -2,7 +2,7 @@ const truffleAssert = require('truffle-assertions');
 const { deployProxy } = require('@openzeppelin/truffle-upgrades');
 
 const RoyaltyRegistry = artifacts.require("RoyaltyRegistry");
-const RoyaltyEngineV1 = artifacts.require("RoyaltyEngineV1")
+const RoyaltyEngineV2 = artifacts.require("RoyaltyEngineV2")
 const MockContract = artifacts.require("MockContract");
 const MockManifold = artifacts.require("MockManifold");
 const MockFoundation = artifacts.require("MockFoundation");
@@ -137,7 +137,7 @@ contract('Registry', function ([...accounts]) {
     });
 
     it('getRoyalty test', async function () {
-      engine = await deployProxy(RoyaltyEngineV1, [registry.address], {initializer: "initialize", from:owner});
+      engine = await deployProxy(RoyaltyEngineV2, [registry.address], {initializer: "initialize", from:owner});
 
       var unallocatedTokenId = 1;
       var manifoldTokenId = 2;
@@ -378,7 +378,7 @@ contract('Registry', function ([...accounts]) {
     });
 
     it('invalid royalties test', async function () {
-      engine = await deployProxy(RoyaltyEngineV1, [registry.address], {initializer: "initialize", from:owner});
+      engine = await deployProxy(RoyaltyEngineV2, [registry.address], {initializer: "initialize", from:owner});
 
       var unallocatedTokenId = 1;
       var manifoldTokenId = 2;
