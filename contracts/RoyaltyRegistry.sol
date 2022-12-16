@@ -51,39 +51,50 @@ contract RoyaltyRegistry is ERC165, OwnableUpgradeable, IRoyaltyRegistry {
      */
     function setRoyaltyLookupAddress(address tokenAddress, address royaltyLookupAddress) public override {
         require(tokenAddress.isContract() && (royaltyLookupAddress.isContract() || royaltyLookupAddress == address(0)), "Invalid input");
-        require(overrideAllowed(tokenAddress), "Permission denied");
+        address originatorAddress;
+        if (_overrideAllowed(tx.origin, tokenAddress)) {
+            originatorAddress = _msgSender();
+        } else if (_overrideAllowed(_msgSender(), tokenAddress)) {
+            originatorAddress = tx.origin;
+        } else {
+            revert("Permission denied");
+        }
         _overrides[tokenAddress] = royaltyLookupAddress;
-        emit RoyaltyOverride(_msgSender(), tokenAddress, royaltyLookupAddress);
+        emit RoyaltyOverride(originatorAddress, tokenAddress, royaltyLookupAddress);
     }
 
     /**
      * @dev See {IRegistry-overrideAllowed}.
      */
     function overrideAllowed(address tokenAddress) public view override returns(bool) {
-        if (owner() == _msgSender()) return true;
+        return _overrideAllowed(tx.origin, tokenAddress) || _overrideAllowed(_msgSender(), tokenAddress);
+    }
+
+    function _overrideAllowed(address senderAddress, address tokenAddress) private view returns(bool) {
+        if (owner() == senderAddress) return true;
 
         if (ERC165Checker.supportsInterface(tokenAddress, type(IAdminControl).interfaceId)
-            && IAdminControl(tokenAddress).isAdmin(_msgSender())) {
+            && IAdminControl(tokenAddress).isAdmin(senderAddress)) {
             return true;
         }
 
         try OwnableUpgradeable(tokenAddress).owner() returns (address owner) {
-            if (owner == _msgSender()) return true;
+            if (owner == senderAddress) return true;
 
             if (owner.isContract()) {
               try OwnableUpgradeable(owner).owner() returns (address passThroughOwner) {
-                  if (passThroughOwner == _msgSender()) return true;
+                  if (passThroughOwner == senderAddress) return true;
               } catch {}
             }
         } catch {}
 
-        try IAccessControlUpgradeable(tokenAddress).hasRole(0x00, _msgSender()) returns (bool hasRole) {
+        try IAccessControlUpgradeable(tokenAddress).hasRole(0x00, senderAddress) returns (bool hasRole) {
             if (hasRole) return true;
         } catch {}
 
         // Nifty Gateway overrides
         try INiftyBuilderInstance(tokenAddress).niftyRegistryContract() returns (address niftyRegistry) {
-            try INiftyRegistry(niftyRegistry).isValidNiftySender(_msgSender()) returns (bool valid) {
+            try INiftyRegistry(niftyRegistry).isValidNiftySender(senderAddress) returns (bool valid) {
                 return valid;
             } catch {}
         } catch {}
@@ -93,21 +104,21 @@ contract RoyaltyRegistry is ERC165, OwnableUpgradeable, IRoyaltyRegistry {
 
         // Foundation overrides
         try IFoundationTreasuryNode(tokenAddress).getFoundationTreasury() returns (address payable foundationTreasury) {
-            try IFoundationTreasury(foundationTreasury).isAdmin(_msgSender()) returns (bool isAdmin) {
+            try IFoundationTreasury(foundationTreasury).isAdmin(senderAddress) returns (bool isAdmin) {
                 return isAdmin;
             } catch {}
         } catch {}
 
         // DIGITALAX overrides
         try IDigitalax(tokenAddress).accessControls() returns (address externalAccessControls){
-            try IDigitalaxAccessControls(externalAccessControls).hasAdminRole(_msgSender()) returns (bool hasRole) {
+            try IDigitalaxAccessControls(externalAccessControls).hasAdminRole(senderAddress) returns (bool hasRole) {
                 if (hasRole) return true;
             } catch {}
         } catch {}
 
         // Art Blocks overrides
         try IArtBlocks(tokenAddress).admin() returns (address admin) {
-            if (admin == _msgSender()) return true;
+            if (admin == senderAddress) return true;
         } catch {}
 
         // Superrare overrides
