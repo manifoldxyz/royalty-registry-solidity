@@ -14,8 +14,7 @@ import "../specs/IKODAV2Override.sol";
  *         a primary vs secondary expected commission amount so we need work this out proportionally
  */
 contract KODAV2Override is IKODAV2Override, ERC165, Ownable {
-
-    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165) returns (bool) {
+    function supportsInterface(bytes4 interfaceId) public view virtual override (ERC165) returns (bool) {
         return interfaceId == type(IKODAV2Override).interfaceId || super.supportsInterface(interfaceId);
     }
 
@@ -26,11 +25,11 @@ contract KODAV2Override is IKODAV2Override, ERC165, Ownable {
     uint256 public creatorRoyaltiesFee = 10_00000; // 10% by default
 
     function getKODAV2RoyaltyInfo(address _tokenAddress, uint256 _id, uint256 _amount)
-    external
-    override
-    view
-    returns (address payable[] memory receivers, uint256[] memory amounts) {
-
+        external
+        view
+        override
+        returns (address payable[] memory receivers, uint256[] memory amounts)
+    {
         // Get the edition the token is part of
         uint256 _editionNumber = IKODAV2(_tokenAddress).editionOfTokenId(_id);
         require(_editionNumber > 0, "Edition not found for token ID");
@@ -42,9 +41,9 @@ contract KODAV2Override is IKODAV2Override, ERC165, Ownable {
         uint256 totalRoyaltyToPay = (_amount / modulo) * creatorRoyaltiesFee;
 
         // Get optional commission set against the edition and work out the expected commission
-        (uint256 optionalCommissionRate, address optionalCommissionRecipient) = IKODAV2(_tokenAddress).editionOptionalCommission(_editionNumber);
+        (uint256 optionalCommissionRate, address optionalCommissionRecipient) =
+            IKODAV2(_tokenAddress).editionOptionalCommission(_editionNumber);
         if (optionalCommissionRate > 0) {
-
             receivers = new address payable[](2);
             amounts = new uint256[](2);
 
@@ -73,5 +72,4 @@ contract KODAV2Override is IKODAV2Override, ERC165, Ownable {
         emit CreatorRoyaltiesFeeUpdated(creatorRoyaltiesFee, _creatorRoyaltiesFee);
         creatorRoyaltiesFee = _creatorRoyaltiesFee;
     }
-
 }

@@ -1,0 +1,60 @@
+{
+  "_storage": [
+    {
+      "astId": 37851,
+      "label": "_initialized",
+      "offset": 0,
+      "slot": "0",
+      "_contract": "contracts/RoyaltyEngineV1.sol:RoyaltyEngineV1",
+      "_type": "t_uint8"
+    },
+    {
+      "astId": 37854,
+      "label": "_initializing",
+      "offset": 1,
+      "slot": "0",
+      "_contract": "contracts/RoyaltyEngineV1.sol:RoyaltyEngineV1",
+      "_type": "t_bool"
+    },
+    {
+      "astId": 38338,
+      "label": "__gap",
+      "offset": 0,
+      "slot": "1",
+      "_contract": "contracts/RoyaltyEngineV1.sol:RoyaltyEngineV1",
+      "_type": "t_array(t_uint256)50_storage"
+    },
+    {
+      "astId": 37723,
+      "label": "_owner",
+      "offset": 0,
+      "slot": "51",
+      "_contract": "contracts/RoyaltyEngineV1.sol:RoyaltyEngineV1",
+      "_type": "t_address"
+    },
+    {
+      "astId": 37843,
+      "label": "__gap",
+      "offset": 0,
+      "slot": "52",
+      "_contract": "contracts/RoyaltyEngineV1.sol:RoyaltyEngineV1",
+      "_type": "t_array(t_uint256)49_storage"
+    },
+    {
+      "astId": 346,
+      "label": "_specCache",
+      "offset": 0,
+      "slot": "101",
+      "_contract": "contracts/RoyaltyEngineV1.sol:RoyaltyEngineV1",
+      "_type": "t_mapping(t_address,t_int16)"
+    },
+    {
+      "astId": 348,
+      "label": "royaltyRegistry",
+      "offset": 0,
+      "slot": "102",
+      "_contract": "contracts/RoyaltyEngineV1.sol:RoyaltyEngineV1",
+      "_type": "t_address"
+    }
+  ]
+}

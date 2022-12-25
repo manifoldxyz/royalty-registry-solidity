@@ -12,9 +12,9 @@ import "./RoyaltyOverrideCore.sol";
  * Simple EIP2981 reference override implementation
  */
 contract EIP2981RoyaltyOverrideCloneable is EIP2981RoyaltyOverrideCore, OwnableUpgradeable {
-
-    function initialize() public initializer {
-        __Ownable_init();
+    function initialize(TokenRoyalty calldata _defaultRoyalty, address initialOwner) public initializer {
+        _transferOwnership(initialOwner);
+        _setDefaultRoyalty(_defaultRoyalty);
     }
 
     /**

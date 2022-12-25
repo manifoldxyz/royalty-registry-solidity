@@ -1,4 +1,6 @@
-@manifoldxyz/=node_modules/@manifoldxyz/
-@openzeppelin/=node_modules/@openzeppelin/
-ds-test/=lib/forge-std/lib/ds-test/src/
+@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/
+@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/
+@manifoldxyz/libraries-solidity/=lib/libraries-solidity/
+create2-scripts/=lib/create2-helpers/script/
 forge-std/=lib/forge-std/src/
+ds-test/=lib/forge-std/lib/ds-test/src/

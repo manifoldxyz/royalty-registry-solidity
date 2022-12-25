@@ -20,8 +20,9 @@ abstract contract EIP2981RoyaltyOverrideCore is IEIP2981, IEIP2981RoyaltyOverrid
     mapping(uint256 => TokenRoyalty) private _tokenRoyalties;
     EnumerableSet.UintSet private _tokensWithRoyalties;
 
-    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165, IERC165) returns (bool) {
-        return interfaceId == type(IEIP2981).interfaceId || interfaceId == type(IEIP2981RoyaltyOverride).interfaceId || super.supportsInterface(interfaceId);
+    function supportsInterface(bytes4 interfaceId) public view virtual override (ERC165, IERC165) returns (bool) {
+        return interfaceId == type(IEIP2981).interfaceId || interfaceId == type(IEIP2981RoyaltyOverride).interfaceId
+            || super.supportsInterface(interfaceId);
     }
 
     /**
@@ -29,7 +30,7 @@ abstract contract EIP2981RoyaltyOverrideCore is IEIP2981, IEIP2981RoyaltyOverrid
      * ensure that you access restrict it to the contract owner or admin
      */
     function _setTokenRoyalties(TokenRoyaltyConfig[] memory royaltyConfigs) internal {
-        for (uint i = 0; i < royaltyConfigs.length; i++) {
+        for (uint256 i = 0; i < royaltyConfigs.length; i++) {
             TokenRoyaltyConfig memory royaltyConfig = royaltyConfigs[i];
             require(royaltyConfig.bps < 10000, "Invalid bps");
             if (royaltyConfig.recipient == address(0)) {
@@ -57,14 +58,14 @@ abstract contract EIP2981RoyaltyOverrideCore is IEIP2981, IEIP2981RoyaltyOverrid
     /**
      * @dev See {IEIP2981RoyaltyOverride-getTokenRoyaltiesCount}.
      */
-    function getTokenRoyaltiesCount() external override view returns(uint256) {
+    function getTokenRoyaltiesCount() external view override returns (uint256) {
         return _tokensWithRoyalties.length();
     }
 
     /**
      * @dev See {IEIP2981RoyaltyOverride-getTokenRoyaltyByIndex}.
      */
-    function getTokenRoyaltyByIndex(uint256 index) external override view returns(TokenRoyaltyConfig memory) {
+    function getTokenRoyaltyByIndex(uint256 index) external view override returns (TokenRoyaltyConfig memory) {
         uint256 tokenId = _tokensWithRoyalties.at(index);
         TokenRoyalty memory royalty = _tokenRoyalties[tokenId];
         return TokenRoyaltyConfig(tokenId, royalty.recipient, royalty.bps);
@@ -73,12 +74,12 @@ abstract contract EIP2981RoyaltyOverrideCore is IEIP2981, IEIP2981RoyaltyOverrid
     /**
      * @dev See {IEIP2981RoyaltyOverride-royaltyInfo}.
      */
-    function royaltyInfo(uint256 tokenId, uint256 value) public override view returns (address, uint256) {
+    function royaltyInfo(uint256 tokenId, uint256 value) public view override returns (address, uint256) {
         if (_tokenRoyalties[tokenId].recipient != address(0)) {
-            return (_tokenRoyalties[tokenId].recipient, value*_tokenRoyalties[tokenId].bps/10000);
+            return (_tokenRoyalties[tokenId].recipient, value * _tokenRoyalties[tokenId].bps / 10000);
         }
         if (defaultRoyalty.recipient != address(0) && defaultRoyalty.bps != 0) {
-            return (defaultRoyalty.recipient, value*defaultRoyalty.bps/10000);
+            return (defaultRoyalty.recipient, value * defaultRoyalty.bps / 10000);
         }
         return (address(0), 0);
     }

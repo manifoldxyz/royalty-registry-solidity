@@ -13,10 +13,15 @@ import "../overrides/RoyaltyOverrideCore.sol";
  * Reference implementation of ERC1155 with EIP2981 support
  */
 contract ERC1155WithEIP2981 is ERC1155, EIP2981RoyaltyOverrideCore, Ownable {
+    constructor(string memory uri_) ERC1155(uri_) { }
 
-    constructor(string memory uri_) ERC1155(uri_) {}
-
-    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC1155, EIP2981RoyaltyOverrideCore) returns (bool) {
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        virtual
+        override (ERC1155, EIP2981RoyaltyOverrideCore)
+        returns (bool)
+    {
         return ERC1155.supportsInterface(interfaceId) || EIP2981RoyaltyOverrideCore.supportsInterface(interfaceId);
     }
 
@@ -33,6 +38,4 @@ contract ERC1155WithEIP2981 is ERC1155, EIP2981RoyaltyOverrideCore, Ownable {
     function setDefaultRoyalty(TokenRoyalty calldata royalty) external override onlyOwner {
         _setDefaultRoyalty(royalty);
     }
-
-
 }

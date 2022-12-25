@@ -13,10 +13,15 @@ import "../overrides/RoyaltyOverrideCore.sol";
  * Reference implementation of ERC721 with EIP2981 support
  */
 contract ERC721WithEIP2981 is ERC721, EIP2981RoyaltyOverrideCore, Ownable {
+    constructor(string memory name_, string memory symbol_) ERC721(name_, symbol_) { }
 
-    constructor(string memory name_, string memory symbol_) ERC721(name_, symbol_) {}
-
-    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721, EIP2981RoyaltyOverrideCore) returns (bool) {
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        virtual
+        override (ERC721, EIP2981RoyaltyOverrideCore)
+        returns (bool)
+    {
         return ERC721.supportsInterface(interfaceId) || EIP2981RoyaltyOverrideCore.supportsInterface(interfaceId);
     }
 
@@ -33,6 +38,4 @@ contract ERC721WithEIP2981 is ERC721, EIP2981RoyaltyOverrideCore, Ownable {
     function setDefaultRoyalty(TokenRoyalty calldata royalty) external override onlyOwner {
         _setDefaultRoyalty(royalty);
     }
-
-
 }
