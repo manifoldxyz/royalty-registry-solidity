@@ -8,7 +8,6 @@ pragma solidity ^0.8.0;
  * @dev Royalty interface for creator core classes
  */
 interface IManifold {
-
     /**
      * @dev Get royalites of a token.  Returns list of receivers and basisPoints
      *

@@ -9,10 +9,9 @@ interface IRaribleV1 {
      *
      * => 0x0ebd4c7f ^ 0xb9c4d9fb == 0xb7799584
      */
-    function getFeeBps(uint256 id) external view returns (uint[] memory);
+    function getFeeBps(uint256 id) external view returns (uint256[] memory);
     function getFeeRecipients(uint256 id) external view returns (address payable[] memory);
 }
-
 
 interface IRaribleV2 {
     /*
@@ -22,5 +21,6 @@ interface IRaribleV2 {
         address payable account;
         uint96 value;
     }
+
     function getRaribleV2Royalties(uint256 id) external view returns (Part[] memory);
 }

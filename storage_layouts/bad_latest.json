@@ -1,0 +1,52 @@
+{
+  "_storage": [
+    {
+      "astId": 37364,
+      "label": "_initialized",
+      "offset": 0,
+      "slot": "0",
+      "_contract": "contracts/RoyaltyRegistry.sol:RoyaltyRegistry",
+      "_type": "t_uint8"
+    },
+    {
+      "astId": 37367,
+      "label": "_initializing",
+      "offset": 1,
+      "slot": "0",
+      "_contract": "contracts/RoyaltyRegistry.sol:RoyaltyRegistry",
+      "_type": "t_bool"
+    },
+    {
+      "astId": 37851,
+      "label": "__gap",
+      "offset": 0,
+      "slot": "1",
+      "_contract": "contracts/RoyaltyRegistry.sol:RoyaltyRegistry",
+      "_type": "t_array(t_uint256)50_storage"
+    },
+    {
+      "astId": 37236,
+      "label": "_owner",
+      "offset": 0,
+      "slot": "51",
+      "_contract": "contracts/RoyaltyRegistry.sol:RoyaltyRegistry",
+      "_type": "t_address"
+    },
+    {
+      "astId": 37356,
+      "label": "__gap",
+      "offset": 0,
+      "slot": "52",
+      "_contract": "contracts/RoyaltyRegistry.sol:RoyaltyRegistry",
+      "_type": "t_array(t_uint256)49_storage"
+    },
+    {
+      "astId": 1621,
+      "label": "_overrides",
+      "offset": 0,
+      "slot": "101",
+      "_contract": "contracts/RoyaltyRegistry.sol:RoyaltyRegistry",
+      "_type": "t_mapping(t_address,t_address)"
+    }
+  ]
+}

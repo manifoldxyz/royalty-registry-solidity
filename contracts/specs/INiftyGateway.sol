@@ -6,7 +6,7 @@ pragma solidity ^0.8.0;
  * @dev Nifty builder instance
  */
 interface INiftyBuilderInstance {
-   function niftyRegistryContract() external view returns (address);
+    function niftyRegistryContract() external view returns (address);
 }
 
 /**

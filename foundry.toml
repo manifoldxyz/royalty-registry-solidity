@@ -1,0 +1,27 @@
+[profile.default]
+solc = '0.8.17'
+optimizer_runs = 1_000_000
+src = 'contracts'
+out = 'out'
+libs = [
+    'lib'
+]
+remappings = [
+    'ds-test/=lib/forge-std/lib/ds-test/src/',
+    'forge-std/=lib/forge-std/src/',
+]
+verbosity = 3
+bytecode_hash = "none"
+fs_permissions = [{ access="read", path="watched_contracts.txt" }, { access = "read", path = "storage_layouts/"}]
+
+
+[fmt]
+line_length = 120
+tab_width = 4
+bracket_spacing = true
+
+[rpc_endpoints]
+polygon = '${POLYGON_RPC_URL}'
+polygon_mumbai = '${MUMBAI_RPC_URL}'
+
+# See more config options https://github.com/foundry-rs/foundry/tree/master/config

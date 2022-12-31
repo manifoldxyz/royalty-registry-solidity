@@ -11,16 +11,21 @@ import "../specs/IZoraOverride.sol";
  * @dev Implementation of Zora override
  */
 contract ZoraOverride is IZoraOverride, ERC165 {
-
-    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165) returns (bool) {
+    function supportsInterface(bytes4 interfaceId) public view virtual override (ERC165) returns (bool) {
         return interfaceId == type(IZoraOverride).interfaceId || super.supportsInterface(interfaceId);
     }
 
     /**
      * @dev See {IZoraOverride.convertBidShares}.
      */
-    function convertBidShares(address media, uint256 tokenId) public view override returns (address payable[] memory receivers, uint256[] memory bps) {
-        IZoraMarket.ZoraBidShares memory bidShares = IZoraMarket(IZoraMedia(media).marketContract()).bidSharesForToken(tokenId);
+    function convertBidShares(address media, uint256 tokenId)
+        public
+        view
+        override
+        returns (address payable[] memory receivers, uint256[] memory bps)
+    {
+        IZoraMarket.ZoraBidShares memory bidShares =
+            IZoraMarket(IZoraMedia(media).marketContract()).bidSharesForToken(tokenId);
 
         // Get the total length of receivers/bps
         uint256 totalLength = 0;
@@ -40,9 +45,9 @@ contract ZoraOverride is IZoraOverride, ERC165 {
 
         if (bidShares.creator.value != 0) {
             receivers[0] = payable(IZoraMedia(media).tokenCreators(tokenId));
-            bps[0] = bidShares.creator.value/(10**(18-2));
+            bps[0] = bidShares.creator.value / (10 ** (18 - 2));
         }
-        
+
         return (receivers, bps);
     }
 }
