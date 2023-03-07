@@ -3,10 +3,12 @@ pragma solidity ^0.8.17;
 
 import { BaseOverrideTest } from "./BaseOverride.t.sol";
 import { OwnableStub } from "./helpers/OwnableStub.sol";
-import { Recipient } from "../contracts/overrides/IRoyaltySplitter.sol";
 import { IEIP2981RoyaltyOverride } from "../contracts/overrides/IRoyaltyOverride.sol";
+import { EIP2981RoyaltyOverrideCloneable } from "../contracts/overrides/RoyaltyOverrideCloneable.sol";
 import { EIP2981MultiReceiverRoyaltyOverrideCloneable } from
     "../contracts/overrides/MultiReceiverRoyaltyOverrideCloneable.sol";
+import { IEIP2981MultiReceiverRoyaltyOverride } from
+    "../contracts/overrides/IMultiReceiverRoyaltyOverride.sol";
 import { RoyaltyRegistry } from "../contracts/RoyaltyRegistry.sol";
 import { RoyaltyEngineV1 } from "../contracts/RoyaltyEngineV1.sol";
 
@@ -49,6 +51,7 @@ contract EngineTest is BaseOverrideTest {
     int16 private constant ARTBLOCKS = 8;
     int16 private constant KNOWNORIGINV2 = 9;
     int16 private constant ROYALTY_SPLITTER = 10;
+    int16 private constant MULTI_RECEIVER = 11;
     int16 private constant FALLBACK = type(int16).max;
 
     function testInitialize() public {
@@ -72,7 +75,7 @@ contract EngineTest is BaseOverrideTest {
     function testInvalidateCachedRoyaltySpec() public {
         factory.createOverrideAndRegister(address(registry), address(ownable), 500, new Recipient[](0));
         engine.getRoyalty(address(ownable), 1, 1000);
-        assertEq(engine.getCachedRoyaltySpec(address(ownable)), 10);
+        assertEq(engine.getCachedRoyaltySpec(address(ownable)), 11);
         engine.invalidateCachedRoyaltySpec(address(ownable));
         assertEq(engine.getCachedRoyaltySpec(address(ownable)), 0);
     }
@@ -134,7 +137,45 @@ contract EngineTest is BaseOverrideTest {
         assertEq(amounts[0], 25);
         assertEq(amounts[1], 25);
 
-        assertEq(engine.getCachedRoyaltySpec(address(ownable)), ROYALTY_SPLITTER);
+        assertEq(engine.getCachedRoyaltySpec(address(ownable)), MULTI_RECEIVER);
+    }
+
+    function testRoyaltySplitter_multi_with_token_override() public {
+        Recipient[] memory splits = new Recipient[](2);
+        splits[0] = Recipient({recipient: payable(address(this)), bps: 5000});
+        splits[1] = Recipient({recipient: payable(address(1234)), bps: 5000});
+        address clone = factory.createOverrideAndRegister(address(registry), address(ownable), 500, splits);
+        IEIP2981MultiReceiverRoyaltyOverride.TokenRoyaltyConfig[] memory configs = new IEIP2981MultiReceiverRoyaltyOverride.TokenRoyaltyConfig[](1);
+        Recipient[] memory tokenSplits = new Recipient[](1);
+        tokenSplits[0] = Recipient({recipient: payable(address(5678)), bps: 10000});
+        configs[0] = IEIP2981MultiReceiverRoyaltyOverride.TokenRoyaltyConfig({tokenId: 100, recipients: tokenSplits, royaltyBPS: 500});
+        IEIP2981MultiReceiverRoyaltyOverride(clone).setTokenRoyalties(configs);
+
+        (address payable[] memory recipients, uint256[] memory amounts) = engine.getRoyalty(address(ownable), 1, 1000);
+        assertEq(recipients.length, 2);
+        assertEq(recipients[0], address(this));
+        assertEq(recipients[1], address(1234));
+        assertEq(amounts.length, 2);
+        assertEq(amounts[0], 25);
+        assertEq(amounts[1], 25);
+
+        // do it again to make sure it's cached
+        (recipients, amounts) = engine.getRoyalty(address(ownable), 1, 1000);
+        assertEq(recipients.length, 2);
+        assertEq(recipients[0], address(this));
+        assertEq(recipients[1], address(1234));
+        assertEq(amounts.length, 2);
+        assertEq(amounts[0], 25);
+        assertEq(amounts[1], 25);
+
+        assertEq(engine.getCachedRoyaltySpec(address(ownable)), MULTI_RECEIVER);
+
+        // check token override
+        (recipients, amounts) = engine.getRoyalty(address(ownable), 100, 1000);
+        assertEq(recipients.length, 1);
+        assertEq(recipients[0], address(5678));
+        assertEq(amounts.length, 1);
+        assertEq(amounts[0], 50);
     }
 
     function testGetRoyalty_SuperRareRegistry() public {

@@ -45,4 +45,9 @@ interface IEIP2981MultiReceiverRoyaltyOverride is IERC165 {
      * @dev Helper function to get all splits contracts
      */
     function getAllSplits() external view returns (address payable[] memory);
+
+    /**
+     * @dev Get the recipients for a token
+     */
+    function getRecipients(uint256 tokenId) external view returns (Recipient[] memory);
 }
