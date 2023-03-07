@@ -144,10 +144,6 @@ abstract contract EIP2981MultiReceiverRoyaltyMultiReceiverOverrideCore is
         }
     }
 
-    function getRecipients() public view returns (Recipient[] memory) {
-        return RoyaltySplitter(_defaultRoyaltySplitter).getRecipients();
-    }
-
     function getRecipients(uint256 tokenId) public view returns (Recipient[] memory) {
         address payable splitterAddress = _tokenRoyaltiesSplitter[tokenId];
         if (splitterAddress != address(0)) {
