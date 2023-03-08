@@ -22,7 +22,6 @@ import { IKODAV2Override } from "./specs/IKODAV2Override.sol";
 import { IRoyaltyEngineV1 } from "./IRoyaltyEngineV1.sol";
 import { IRoyaltyRegistry } from "./IRoyaltyRegistry.sol";
 import { IRoyaltySplitter, Recipient } from "./overrides/IRoyaltySplitter.sol";
-import { IEIP2981MultiReceiverRoyaltyOverride } from "./overrides/IMultiReceiverRoyaltyOverride.sol";
 import { IFallbackRegistry } from "./overrides/IFallbackRegistry.sol";
 /**
  * @dev Engine to lookup royalty configurations
@@ -46,7 +45,6 @@ contract RoyaltyEngineV1 is ERC165, OwnableUpgradeable, IRoyaltyEngineV1 {
     int16 private constant ARTBLOCKS = 8;
     int16 private constant KNOWNORIGINV2 = 9;
     int16 private constant ROYALTY_SPLITTER = 10;
-    int16 private constant MULTI_RECEIVER = 11;
     int16 private constant FALLBACK = type(int16).max;
 
     mapping(address => int16) _specCache;
@@ -171,27 +169,7 @@ contract RoyaltyEngineV1 is ERC165, OwnableUpgradeable, IRoyaltyEngineV1 {
             }
             try IEIP2981(royaltyAddress).royaltyInfo(tokenId, value) returns (address recipient, uint256 amount) {
                 require(amount < value, "Invalid royalty amount");
-                try IEIP2981MultiReceiverRoyaltyOverride(royaltyAddress).getRecipients(tokenId) returns (Recipient[] memory splitRecipients) {
-                    recipients = new address payable[](splitRecipients.length);
-                    amounts = new uint256[](splitRecipients.length);
-                    uint256 sum = 0;
-                    uint256 splitRecipientsLength = splitRecipients.length;
-                    for (uint256 i = 0; i < splitRecipientsLength;) {
-                        Recipient memory splitRecipient = splitRecipients[i];
-                        recipients[i] = payable(splitRecipient.recipient);
-                        uint256 splitAmount = splitRecipient.bps * amount / 10000;
-                        amounts[i] = splitAmount;
-                        sum += splitAmount;
-                        unchecked {
-                            ++i;
-                        }
-                    }
-                    // sum can be less than amount, otherwise small-value listings can break
-                    require(sum <= amount, "Invalid split");
-
-                    return (recipients, amounts, MULTI_RECEIVER, royaltyAddress, addToCache);
-                } catch { }
-                try IRoyaltySplitter(royaltyAddress).getRecipients() returns (Recipient[] memory splitRecipients) {
+                try IRoyaltySplitter(recipient).getRecipients() returns (Recipient[] memory splitRecipients) {
                     recipients = new address payable[](splitRecipients.length);
                     amounts = new uint256[](splitRecipients.length);
                     uint256 sum = 0;
@@ -325,17 +303,12 @@ contract RoyaltyEngineV1 is ERC165, OwnableUpgradeable, IRoyaltyEngineV1 {
                 (recipients, bps) = IFoundation(royaltyAddress).getFees(tokenId);
                 require(recipients.length == bps.length);
                 return (recipients, _computeAmounts(value, bps), spec, royaltyAddress, addToCache);
-            } else if (spec == EIP2981 || spec == MULTI_RECEIVER || spec == ROYALTY_SPLITTER) {
+            } else if (spec == EIP2981 || spec == ROYALTY_SPLITTER) {
                 // EIP2981 spec
                 (address recipient, uint256 amount) = IEIP2981(royaltyAddress).royaltyInfo(tokenId, value);
                 require(amount < value, "Invalid royalty amount");
-                Recipient[] memory splitRecipients;
-                if (spec == MULTI_RECEIVER) {
-                    splitRecipients = IEIP2981MultiReceiverRoyaltyOverride(royaltyAddress).getRecipients(tokenId);
-                }else if (spec == ROYALTY_SPLITTER) {
-                    splitRecipients = IRoyaltySplitter(royaltyAddress).getRecipients();
-                }
-                if (splitRecipients.length > 0) {
+                if (spec == ROYALTY_SPLITTER) {
+                    Recipient[] memory splitRecipients = IRoyaltySplitter(recipient).getRecipients();
                     recipients = new address payable[](splitRecipients.length);
                     amounts = new uint256[](splitRecipients.length);
                     uint256 sum = 0;

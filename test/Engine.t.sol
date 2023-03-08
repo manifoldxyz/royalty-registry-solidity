@@ -51,7 +51,6 @@ contract EngineTest is BaseOverrideTest {
     int16 private constant ARTBLOCKS = 8;
     int16 private constant KNOWNORIGINV2 = 9;
     int16 private constant ROYALTY_SPLITTER = 10;
-    int16 private constant MULTI_RECEIVER = 11;
     int16 private constant FALLBACK = type(int16).max;
 
     function testInitialize() public {
@@ -75,7 +74,7 @@ contract EngineTest is BaseOverrideTest {
     function testInvalidateCachedRoyaltySpec() public {
         factory.createOverrideAndRegister(address(registry), address(ownable), 500, new Recipient[](0));
         engine.getRoyalty(address(ownable), 1, 1000);
-        assertEq(engine.getCachedRoyaltySpec(address(ownable)), 11);
+        assertEq(engine.getCachedRoyaltySpec(address(ownable)), ROYALTY_SPLITTER);
         engine.invalidateCachedRoyaltySpec(address(ownable));
         assertEq(engine.getCachedRoyaltySpec(address(ownable)), 0);
     }
@@ -137,7 +136,7 @@ contract EngineTest is BaseOverrideTest {
         assertEq(amounts[0], 25);
         assertEq(amounts[1], 25);
 
-        assertEq(engine.getCachedRoyaltySpec(address(ownable)), MULTI_RECEIVER);
+        assertEq(engine.getCachedRoyaltySpec(address(ownable)), ROYALTY_SPLITTER);
     }
 
     function testRoyaltySplitter_multi_with_token_override() public {
@@ -168,7 +167,7 @@ contract EngineTest is BaseOverrideTest {
         assertEq(amounts[0], 25);
         assertEq(amounts[1], 25);
 
-        assertEq(engine.getCachedRoyaltySpec(address(ownable)), MULTI_RECEIVER);
+        assertEq(engine.getCachedRoyaltySpec(address(ownable)), ROYALTY_SPLITTER);
 
         // check token override
         (recipients, amounts) = engine.getRoyalty(address(ownable), 100, 1000);
