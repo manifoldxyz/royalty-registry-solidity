@@ -6,11 +6,9 @@
     "test": "test"
   },
   "files": [
-    "node_modules",
     "package.json",
     "README.md",
-    "contracts/**/*.sol",
-    "build/contracts/*.json"
+    "contracts/**/*.sol"
   ],
   "scripts": {
     "test": "forge test"
