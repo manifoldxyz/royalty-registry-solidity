@@ -34,6 +34,7 @@ import { Manifold } from "./helpers/engine/Manifold.sol";
 import { RaribleV1 } from "./helpers/engine/RaribleV1.sol";
 import { RaribleV2 } from "./helpers/engine/RaribleV2.sol";
 import { Foundation } from "./helpers/engine/Foundation.sol";
+import { EIP2981Impl } from "./helpers/engine/EIP2981.sol";
 import { ZoraOverride } from "./helpers/engine/ZoraOverride.sol";
 import { ArtBlocksOverride } from "./helpers/engine/ArtBlocksOverride.sol";
 import { KODAV2Override } from "./helpers/engine/KODAV2Override.sol";
@@ -110,7 +111,7 @@ contract EngineTest is BaseOverrideTest {
             address(ownable),
             IEIP2981RoyaltyOverride.TokenRoyalty({bps: 500, recipient: address(this)})
         );
-        testSpecAndCache(false, address(ownable), EIP2981);
+        testSpecAndCache(false, address(ownable), EIP2981, address(this));
     }
 
     function testRoyaltySplitter_multi() public {
@@ -211,7 +212,7 @@ contract EngineTest is BaseOverrideTest {
         RaribleV2 raribleV2 = new RaribleV2();
         testSpecAndCache(false, address(raribleV2), RARIBLEV2);
     }
-    // do the same for foundation, zora, art blocks, and kodav2 overrides
+    // do the same for foundation, eip2981, zora, art blocks, and kodav2 overrides
 
     function testGetRoyalty_Foundation() public {
         Foundation foundation = new Foundation(false);
@@ -220,6 +221,13 @@ contract EngineTest is BaseOverrideTest {
         testSpecAndCache(true, address(foundation), FOUNDATION);
         foundation = new Foundation(true);
         testSpecAndCache(true, address(foundation), FOUNDATION);
+    }
+
+    function testGetRoyalty_EIP2981() public {
+        EIP2981Impl eip2981 = new EIP2981Impl(false);
+        testSpecAndCache(false, address(eip2981), EIP2981);
+        eip2981.setFail(true);
+        testSpecAndCache(true, address(eip2981), EIP2981);
     }
 
     function testGetRoyalty_Zora() public {
@@ -255,17 +263,21 @@ contract EngineTest is BaseOverrideTest {
         Recipient[] memory splits = new Recipient[](1);
         splits[0] = Recipient(payable(address(this)), 500);
         fallbackRegistry.setFallback(address(ownable), splits);
-        testSpecAndCache(false, address(ownable), FALLBACK);
+        testSpecAndCache(false, address(ownable), FALLBACK, address(this));
         // set bps to > 10000 and make sure it reverts
         splits[0] = Recipient(payable(address(this)), 10001);
         fallbackRegistry.setFallback(address(ownable), splits);
-        testSpecAndCache(true, address(ownable), FALLBACK);
+        testSpecAndCache(true, address(ownable), FALLBACK, address(this));
         ownable = new OwnableStub();
         fallbackRegistry.setFallback(address(ownable), splits);
-        testSpecAndCache(true, address(ownable), FALLBACK);
+        testSpecAndCache(true, address(ownable), FALLBACK, address(this));
     }
 
     function testSpecAndCache(bool reverts, address tokenAddress, int16 assertSpec) internal {
+        testSpecAndCache(reverts, tokenAddress, assertSpec, address(999));
+    }
+
+    function testSpecAndCache(bool reverts, address tokenAddress, int16 assertSpec, address recipient) internal {
         int16 startingSpec = engine.getCachedRoyaltySpec(tokenAddress);
         if (reverts) {
             vm.expectRevert("Invalid royalty amount");
@@ -274,7 +286,7 @@ contract EngineTest is BaseOverrideTest {
 
         if (!reverts) {
             assertEq(recipients.length, 1);
-            assertEq(recipients[0], address(this));
+            assertEq(recipients[0], recipient);
             assertEq(amounts.length, 1);
             assertEq(amounts[0], 50);
         }
@@ -286,7 +298,7 @@ contract EngineTest is BaseOverrideTest {
         (recipients, amounts) = engine.getRoyalty(tokenAddress, 1, 1000);
         if (!reverts) {
             assertEq(recipients.length, 1);
-            assertEq(recipients[0], address(this));
+            assertEq(recipients[0], recipient);
             assertEq(amounts.length, 1);
             assertEq(amounts[0], 50);
         }

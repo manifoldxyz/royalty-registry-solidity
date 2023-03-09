@@ -24,7 +24,7 @@ contract RaribleV1 is IRaribleV1 {
 
     function getFeeRecipients(uint256) external view returns (address payable[] memory) {
         address payable[] memory recipients = new address payable[](1);
-        recipients[0] = payable(creator);
+        recipients[0] = payable(address(999));
         return recipients;
     }
 }

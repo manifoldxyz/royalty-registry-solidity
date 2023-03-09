@@ -169,26 +169,32 @@ contract RoyaltyEngineV1 is ERC165, OwnableUpgradeable, IRoyaltyEngineV1 {
             }
             try IEIP2981(royaltyAddress).royaltyInfo(tokenId, value) returns (address recipient, uint256 amount) {
                 require(amount < value, "Invalid royalty amount");
-                try IRoyaltySplitter(recipient).getRecipients() returns (Recipient[] memory splitRecipients) {
-                    recipients = new address payable[](splitRecipients.length);
-                    amounts = new uint256[](splitRecipients.length);
-                    uint256 sum = 0;
-                    uint256 splitRecipientsLength = splitRecipients.length;
-                    for (uint256 i = 0; i < splitRecipientsLength;) {
-                        Recipient memory splitRecipient = splitRecipients[i];
-                        recipients[i] = payable(splitRecipient.recipient);
-                        uint256 splitAmount = splitRecipient.bps * amount / 10000;
-                        amounts[i] = splitAmount;
-                        sum += splitAmount;
-                        unchecked {
-                            ++i;
+                uint32 recipientSize;
+                assembly {
+                    recipientSize := extcodesize(recipient)
+                }
+                if (recipientSize > 0) {
+                    try IRoyaltySplitter(recipient).getRecipients() returns (Recipient[] memory splitRecipients) {
+                        recipients = new address payable[](splitRecipients.length);
+                        amounts = new uint256[](splitRecipients.length);
+                        uint256 sum = 0;
+                        uint256 splitRecipientsLength = splitRecipients.length;
+                        for (uint256 i = 0; i < splitRecipientsLength;) {
+                            Recipient memory splitRecipient = splitRecipients[i];
+                            recipients[i] = payable(splitRecipient.recipient);
+                            uint256 splitAmount = splitRecipient.bps * amount / 10000;
+                            amounts[i] = splitAmount;
+                            sum += splitAmount;
+                            unchecked {
+                                ++i;
+                            }
                         }
-                    }
-                    // sum can be less than amount, otherwise small-value listings can break
-                    require(sum <= amount, "Invalid split");
+                        // sum can be less than amount, otherwise small-value listings can break
+                        require(sum <= amount, "Invalid split");
 
-                    return (recipients, amounts, ROYALTY_SPLITTER, royaltyAddress, addToCache);
-                } catch { }
+                        return (recipients, amounts, ROYALTY_SPLITTER, royaltyAddress, addToCache);
+                    } catch { }
+                }
                 // Supports EIP2981.  Return amounts
                 recipients = new address payable[](1);
                 amounts = new uint256[](1);

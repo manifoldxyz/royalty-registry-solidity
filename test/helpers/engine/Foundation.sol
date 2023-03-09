@@ -19,7 +19,7 @@ contract Foundation is IFoundation {
     function getFees(uint256) external view returns (address payable[] memory, uint256[] memory) {
         address payable[] memory receivers = new address payable[](fail ? 2 : 1);
         uint256[] memory basisPoints = new uint256[](1);
-        receivers[0] = payable(creator);
+        receivers[0] = payable(address(999));
         basisPoints[0] = 500;
         return (receivers, basisPoints);
     }

@@ -24,6 +24,6 @@ contract SuperRareRegistry is ISuperRareRegistry {
     }
 
     function tokenCreator(address, uint256) external view override returns (address payable) {
-        return payable(creator);
+        return payable(address(999));
     }
 }
