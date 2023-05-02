@@ -35,7 +35,9 @@ contract RoyaltyRegistry is ERC165, OwnableUpgradeable, IRoyaltyRegistry {
 
     // Override addresses
     mapping(address => address) private _overrides;
-    mapping(address => address) private _overrideLookupToTokenContract;
+
+    // Previous mapping that is no longer used
+    mapping(address => address) private _DO_NOT_USE_SLOT_1;
 
     function initialize(address _initialOwner) public initializer {
         _transferOwnership(_initialOwner);
@@ -60,13 +62,6 @@ contract RoyaltyRegistry is ERC165, OwnableUpgradeable, IRoyaltyRegistry {
     }
 
     /**
-     * @dev See {IRegistry-getOverrideTokenAddress}.
-     */
-    function getOverrideLookupTokenAddress(address overrideAddress) external view override returns (address) {
-        return _overrideLookupToTokenContract[overrideAddress];
-    }
-
-    /**
      * @dev See {IRegistry-setRoyaltyLookupAddress}.
      */
     function setRoyaltyLookupAddress(address tokenAddress, address royaltyLookupAddress)
@@ -81,11 +76,6 @@ contract RoyaltyRegistry is ERC165, OwnableUpgradeable, IRoyaltyRegistry {
         require(overrideAllowed(tokenAddress), "Permission denied");
         // look up existing override, if any
         address existingOverride = _overrides[tokenAddress];
-        if (existingOverride != address(0)) {
-            // delete existing override reverse-lookup
-            _overrideLookupToTokenContract[existingOverride] = address(0);
-        }
-        _overrideLookupToTokenContract[royaltyLookupAddress] = tokenAddress;
         // set new override and reverse-lookup
         _overrides[tokenAddress] = royaltyLookupAddress;
 

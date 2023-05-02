@@ -135,17 +135,10 @@ contract OverrideFactoryTest is Test {
         factory.createOverrideAndRegister(address(registry), address(ownable), 1000, recipients);
         address lookupAddress = registry.getRoyaltyLookupAddress(address(ownable));
         assertEq(lookupAddress, overrideLookup);
-        address reverseLookup = registry.getOverrideLookupTokenAddress(overrideLookup);
-        assertEq(reverseLookup, address(ownable));
 
         // make another override
-
         factory.createOverrideAndRegister(address(registry), address(ownable), 1000, recipients);
         address newLookupAddress = registry.getRoyaltyLookupAddress(address(ownable));
         assertFalse(newLookupAddress == lookupAddress);
-        address newReverseLookup = registry.getOverrideLookupTokenAddress(newLookupAddress);
-        assertEq(newReverseLookup, address(ownable));
-        address originalReverseLookup = registry.getOverrideLookupTokenAddress(lookupAddress);
-        assertEq(originalReverseLookup, address(0));
     }
 }
