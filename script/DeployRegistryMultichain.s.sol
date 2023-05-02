@@ -15,7 +15,7 @@ contract DeployRegistryMultichain is BaseCreate2Script {
     function run() public {
         setUp();
         REGISTRY_SALT = createBytes32ImmutableSalt(address(0), uint96(bytes12("REGISTRY")));
-        ENGINE_SALT == createBytes32ImmutableSalt(address(0), uint96(bytes12("ENGINE")));
+        ENGINE_SALT = createBytes32ImmutableSalt(address(0), uint96(bytes12("ENGINE")));
         runOnNetworks(this.deploy, vm.envString("NETWORKS", ","));
     }
 
