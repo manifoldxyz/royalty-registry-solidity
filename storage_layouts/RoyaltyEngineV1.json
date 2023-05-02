@@ -1,7 +1,7 @@
 {
   "_storage": [
     {
-      "astId": 34235,
+      "astId": 34191,
       "label": "_initialized",
       "offset": 0,
       "slot": "0",
@@ -9,7 +9,7 @@
       "_type": "t_uint8"
     },
     {
-      "astId": 34238,
+      "astId": 34194,
       "label": "_initializing",
       "offset": 1,
       "slot": "0",
@@ -17,7 +17,7 @@
       "_type": "t_bool"
     },
     {
-      "astId": 34722,
+      "astId": 34678,
       "label": "__gap",
       "offset": 0,
       "slot": "1",
@@ -25,7 +25,7 @@
       "_type": "t_array(t_uint256)50_storage"
     },
     {
-      "astId": 34107,
+      "astId": 34063,
       "label": "_owner",
       "offset": 0,
       "slot": "51",
@@ -33,7 +33,7 @@
       "_type": "t_address"
     },
     {
-      "astId": 34227,
+      "astId": 34183,
       "label": "__gap",
       "offset": 0,
       "slot": "52",
@@ -41,7 +41,7 @@
       "_type": "t_array(t_uint256)49_storage"
     },
     {
-      "astId": 356,
+      "astId": 348,
       "label": "_specCache",
       "offset": 0,
       "slot": "101",
@@ -49,7 +49,7 @@
       "_type": "t_mapping(t_address,t_int16)"
     },
     {
-      "astId": 358,
+      "astId": 350,
       "label": "royaltyRegistry",
       "offset": 0,
       "slot": "102",
