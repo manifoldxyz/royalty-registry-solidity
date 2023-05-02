@@ -36,8 +36,11 @@ contract RoyaltyRegistry is ERC165, OwnableUpgradeable, IRoyaltyRegistry {
     // Override addresses
     mapping(address => address) private _overrides;
 
-    // Previous mapping that is no longer used
-    mapping(address => address) private _DO_NOT_USE_SLOT_1;
+    /**
+     * @notice DO NOT USE! This gap exists due to a prior mapping
+     *         that is no longer used.
+     */
+    mapping(address => address) private __gap_do_not_use_1;
 
     function initialize(address _initialOwner) public initializer {
         _transferOwnership(_initialOwner);

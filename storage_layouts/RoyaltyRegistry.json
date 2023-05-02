@@ -50,7 +50,7 @@
     },
     {
       "astId": 2102,
-      "label": "_overrideLookupToTokenContract",
+      "label": "__gap_do_not_use_1",
       "offset": 0,
       "slot": "102",
       "_contract": "contracts/RoyaltyRegistry.sol:RoyaltyRegistry",
