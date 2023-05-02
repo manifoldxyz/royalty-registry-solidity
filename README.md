@@ -9,6 +9,64 @@ https://royaltyregistry.xyz is a Web3 DApp which makes on-chain royalty lookups 
 The open-source code can be found at:
 https://github.com/manifoldxyz/royalty-registry-client
 
+## Deployments
+
+*Other chains: Optimism, Arbitrum, Avalanche, Binance*
+
+<table>
+  <tr>
+    <td></td>
+    <td>Ethereum</td>
+    <td>Polygon</td>
+    <td>Other Chains*</td>
+  </tr>
+  <tr>
+    <td>Gnosis Safe</td>
+    <td>0xA70e7Ef659C209D977f0f5Ab932F3f775a94502F</td>
+    <td>0xdAC451C0b1c13d7aF7f38022e6A2A29211Cc80d5</td>
+    <td>0x520f09e18895ACd6A9E75dE01355b5691Bf3D92B</td>
+  </tr>
+  <tr>
+    <td>TimeLock Controller</td>
+    <td>0x178AD648e66815E1B01791eBBdbF7b2D7C5B1626</td>
+    <td>0x87bCD4735CbCF9CE98ea2822fBf3F05F2ce10f96</td>
+    <td>0xe3A6CD067a1193b903143C36dA00557c9d95C41e</td>
+  </tr>
+  <tr>
+    <td>Proxy Admin</td>
+    <td>0xc9198CbbB57708CF31e0caBCe963c98e60d333c3</td>
+    <td>0x40d603b2e9B3dE39ddc28Fb93a46BbB8E82b8a88</td>
+    <td>0x0779702742c1397700e452A0976EfEF18D874764</td>
+  </tr>
+  <tr>
+    <td>Royalty Registry</td>
+    <td>0xaD2184FB5DBcfC05d8f056542fB25b04fa32A95D</td>
+    <td>0xe7c9Cb6D966f76f3B5142167088927Bf34966a1f</td>
+    <td>0x3D1151dc590ebF5C04501a7d4E1f8921546774eA</td>
+  </tr>
+  <tr>
+    <td>Royalty Engine</td>
+    <td>0x0385603ab55642cb4Dd5De3aE9e306809991804f</td>
+    <td>0x28EdFcF0Be7E86b07493466e7631a213bDe8eEF2</td>
+    <td>0xEF770dFb6D5620977213f55f99bfd781D04BBE15</td>
+  </tr>
+  <tr>
+    <td>Royalty Registry Impl</td>
+    <td colspan="3" align="center">0x64427932eFE137F80b012552B6772F7f58ddd9a6</td>
+  </tr>
+  <tr>
+    <td>Royalty Engine Impl</td>
+    <td colspan="3" align="center">0x43A48AbF383D7508C03c20e1e46b58e0cd735669</td>
+  </tr>
+  <tr>
+    <td>Royalty Override Factory</td>
+    <td colspan="3" align="center">0x734513F61a65B3745fC7BB574aDFe18379355a1C</td>
+  </tr>
+  <tr>
+    <td>Royalty Fallback Registry</td>
+    <td colspan="3" align="center">0xB78fC2052717C7AE061a14dB1fB2038d5AC34D29</td>
+  </tr>
+</table>
 
 ## Overview
 
