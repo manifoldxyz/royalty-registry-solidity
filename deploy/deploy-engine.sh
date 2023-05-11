@@ -38,6 +38,7 @@ for deployment in "${deployments[@]}"; do
     IFS=',' read -r chain_id name api_key <<< "$deployment"
 
     export NETWORKS=$name
+    export ETHERSCAN_API_KEY=$api_key
 
     echo "[$chain_id] ========= Deploying Engine implementation ========="
 
