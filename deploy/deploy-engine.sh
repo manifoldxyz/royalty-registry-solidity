@@ -12,6 +12,8 @@
 # Arguments:
 #   --broadcast - (optional) If specified, the script will broadcast the transaction to the network. 
 
+source .env
+
 # Mainnets
 deployments=(
     "1,mainnet,$ETHERSCAN_API_KEY"
@@ -36,7 +38,6 @@ for deployment in "${deployments[@]}"; do
     IFS=',' read -r chain_id name api_key <<< "$deployment"
 
     export NETWORKS=$name
-    export ETHERSCAN_API_KEY=$api_key
 
     echo "[$chain_id] ========= Deploying Engine implementation ========="
 
@@ -52,9 +53,10 @@ for deployment in "${deployments[@]}"; do
         echo "[$chain_id] ========= Verifying the contract ========="
         forge verify-contract --watch \
             --chain $chain_id \
+            --constructor-args $(cast abi-encode "constructor(address)" $fallback_registry) \
             $engine_impl \
             contracts/RoyaltyEngineV1.sol:RoyaltyEngineV1 \
-            --constructor-args $(cast abi-encode "constructor(address)" $fallback_registry)
+            $api_key
     else
         echo "[$chain_id] ========= Skipping verification ========="
     fi
