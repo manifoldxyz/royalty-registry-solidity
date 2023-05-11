@@ -16,16 +16,8 @@ contract DeployImplementations is BaseCreate2Script {
     }
 
     function deploy() external returns (address) {
-        console2.log("Running DeployImplementations with deployer ", deployer);
+        console2.log("Running DeployEngineImplementation with deployer ", deployer);
 
-        address overrideFactory = (new DeployOverrideFactory()).deploy();
-        console2.log("Deploying Registry implementation");
-        registryImplementation = _immutableCreate2IfNotDeployed({
-            salt: bytes32(0),
-            broadcaster: deployer,
-            initCode: abi.encodePacked(type(RoyaltyRegistry).creationCode, abi.encode(overrideFactory))
-        });
-        console2.log("Deployed Registry implementation at ", registryImplementation);
         address fallbackRegistry = (new DeployFallbackRegistry()).deploy();
 
         console2.log("Deploying Engine implementation");
