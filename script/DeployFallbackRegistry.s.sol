@@ -27,6 +27,6 @@ contract DeployFallbackRegistry is BaseCreate2Script {
     function _deployFallbackRegistry() internal returns (address) {
         bytes memory initCode =
             abi.encodePacked(type(FallbackRegistry).creationCode, abi.encode(INITIAL_FALLBACK_REGISTRY_OWNER));
-        return _create2IfNotDeployed({salt: bytes32(0), broadcaster: deployer, initCode: initCode});
+        return _immutableCreate2IfNotDeployed({salt: bytes32(0), broadcaster: deployer, initCode: initCode});
     }
 }
