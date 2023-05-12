@@ -2,13 +2,10 @@
 pragma solidity ^0.8.17;
 
 import { BaseCreate2Script, console2 } from "create2-scripts/BaseCreate2Script.s.sol";
-import { RoyaltyRegistry } from "../contracts/RoyaltyRegistry.sol";
 import { RoyaltyEngineV1 } from "../contracts/RoyaltyEngineV1.sol";
-import { DeployOverrideFactory } from "./DeployOverrideFactory.s.sol";
 import { DeployFallbackRegistry } from "./DeployFallbackRegistry.s.sol";
 
 contract DeployImplementations is BaseCreate2Script {
-    address registryImplementation;
     address engineImplementation;
 
     function run() public {
@@ -27,10 +24,7 @@ contract DeployImplementations is BaseCreate2Script {
             initCode: abi.encodePacked(type(RoyaltyEngineV1).creationCode, abi.encode(fallbackRegistry))
         });
         console2.log("Deployed Engine implementation at ", engineImplementation);
-        return registryImplementation;
+        return engineImplementation;
     }
 
-    function getImplementations() external view returns (address, address) {
-        return (registryImplementation, engineImplementation);
-    }
 }
