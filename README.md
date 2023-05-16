@@ -23,6 +23,31 @@ Currently supported chains:
 -  Avalanche
 -  Binance
 
+### All EVM Chains
+
+<table>
+  <tr>
+    <td>TimeLock Controller</td>
+    <td>0xe3A6CD067a1193b903143C36dA00557c9d95C41e</td>
+  </tr>
+  <tr>
+    <td>Royalty Registry Impl</td>
+    <td>0xd389340d95c851655dD99c5781be1c5e39d30B31</td>
+  </tr>
+  <tr>
+    <td>Royalty Engine Impl</td>
+    <td>0xD388d812c1cE2CE7C46D797684BA912De65CD414</td>
+  </tr>
+  <tr>
+    <td>Royalty Override Factory</td>
+    <td >0x103247393F448203ed7Ff7515E262316812637B4</td>
+  </tr>
+  <tr>
+    <td>Royalty Fallback Registry</td>
+    <td>0xB78fC2052717C7AE061a14dB1fB2038d5AC34D29</td>
+  </tr>
+</table>
+
 ### Ethereum & Polygon
 
 <table>
@@ -35,11 +60,6 @@ Currently supported chains:
     <td>Gnosis Safe</td>
     <td>0xA70e7Ef659C209D977f0f5Ab932F3f775a94502F</td>
     <td>0xdAC451C0b1c13d7aF7f38022e6A2A29211Cc80d5</td>
-  </tr>
-  <tr>
-    <td>TimeLock Controller</td>
-    <td>0x178AD648e66815E1B01791eBBdbF7b2D7C5B1626</td>
-    <td>0x87bCD4735CbCF9CE98ea2822fBf3F05F2ce10f96</td>
   </tr>
   <tr>
     <td>Proxy Admin</td>
@@ -56,24 +76,7 @@ Currently supported chains:
     <td>0x0385603ab55642cb4Dd5De3aE9e306809991804f</td>
     <td>0x28EdFcF0Be7E86b07493466e7631a213bDe8eEF2</td>
   </tr>
-  <tr>
-    <td>Royalty Registry Impl</td>
-    <td colspan="2" align="center">0x64427932eFE137F80b012552B6772F7f58ddd9a6</td>
-  </tr>
-  <tr>
-    <td>Royalty Engine Impl</td>
-    <td colspan="2" align="center">0x43A48AbF383D7508C03c20e1e46b58e0cd735669</td>
-  </tr>
-  <tr>
-    <td>Royalty Override Factory</td>
-    <td colspan="2" align="center">0x734513F61a65B3745fC7BB574aDFe18379355a1C</td>
-  </tr>
-  <tr>
-    <td>Royalty Fallback Registry</td>
-    <td colspan="2" align="center">0xB78fC2052717C7AE061a14dB1fB2038d5AC34D29</td>
-  </tr>
 </table>
-
 
 
 ### Other EVM Chains
@@ -98,22 +101,6 @@ Currently supported chains:
   <tr>
     <td>Royalty Engine</td>
     <td>0xEF770dFb6D5620977213f55f99bfd781D04BBE15</td>
-  </tr>
-  <tr>
-    <td>Royalty Registry Impl</td>
-    <td>0x64427932eFE137F80b012552B6772F7f58ddd9a6</td>
-  </tr>
-  <tr>
-    <td>Royalty Engine Impl</td>
-    <td>0x43A48AbF383D7508C03c20e1e46b58e0cd735669</td>
-  </tr>
-  <tr>
-    <td>Royalty Override Factory</td>
-    <td >0x734513F61a65B3745fC7BB574aDFe18379355a1C</td>
-  </tr>
-  <tr>
-    <td>Royalty Fallback Registry</td>
-    <td>0xB78fC2052717C7AE061a14dB1fB2038d5AC34D29</td>
   </tr>
 </table>
 
