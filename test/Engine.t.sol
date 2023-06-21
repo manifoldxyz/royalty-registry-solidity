@@ -38,6 +38,7 @@ import { EIP2981Impl } from "./helpers/engine/EIP2981.sol";
 import { ZoraOverride } from "./helpers/engine/ZoraOverride.sol";
 import { ArtBlocksOverride } from "./helpers/engine/ArtBlocksOverride.sol";
 import { KODAV2Override } from "./helpers/engine/KODAV2Override.sol";
+import { ContractWithFallback } from "./helpers/engine/ContractWithFallback.sol";
 
 contract EngineTest is BaseOverrideTest {
     int16 private constant NONE = -1;
@@ -84,6 +85,18 @@ contract EngineTest is BaseOverrideTest {
         (address payable[] memory recipients, uint256[] memory amounts) = engine.getRoyalty(address(ownable), 1, 1000);
         assertEq(recipients.length, 0);
         assertEq(amounts.length, 0);
+    }
+
+    function testGetRoyalty_ContractWithFallback() public {
+        ContractWithFallback contractWithFallback = new ContractWithFallback();
+        vm.expectRevert("Invalid royalty amount");
+        engine.getRoyalty(address(contractWithFallback), 1, 1000);
+    }
+
+    function testGetRoyaltyView_ContractWithFallback() public {
+        ContractWithFallback contractWithFallback = new ContractWithFallback();
+        vm.expectRevert("Invalid royalty amount");
+        engine.getRoyaltyView(address(contractWithFallback), 1, 1000);
     }
 
     function testGetRoyalty_OOG() public {
