@@ -17,7 +17,8 @@ contract DeployRegistryMultichain is BaseCreate2Script {
         REGISTRY_SALT = createBytes32ImmutableSalt(address(0), uint96(bytes12("REGISTRY")));
         // Original script used to deploy had a typo, which resulted in the SALT being set to zero.
         ENGINE_SALT = bytes32(0);
-        runOnNetworks(this.deploy, vm.envString("NETWORKS", ","));
+        vm.createSelectFork("https://mainnet.base.org");
+        this.deploy();
     }
 
     function deploy() public returns (address) {

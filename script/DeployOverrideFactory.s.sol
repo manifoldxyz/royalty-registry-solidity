@@ -19,7 +19,8 @@ contract DeployOverrideFactory is BaseCreate2Script {
         setUp();
         REGISTRY_SALT = createBytes32ImmutableSalt(address(0), uint96(bytes12("REGISTRY")));
         ENGINE_SALT == createBytes32ImmutableSalt(address(0), uint96(bytes12("ENGINE")));
-        runOnNetworks(this.deploy, vm.envString("NETWORKS", ","));
+        vm.createSelectFork("https://mainnet.base.org");
+        this.deploy();
     }
 
     function deploy() external returns (address) {

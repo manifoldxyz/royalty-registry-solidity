@@ -9,7 +9,8 @@ contract DeployImplementations is BaseCreate2Script {
     address engineImplementation;
 
     function run() public {
-        runOnNetworks(this.deploy, vm.envString("NETWORKS", ","));
+        vm.createSelectFork("https://mainnet.base.org");
+        this.deploy();
     }
 
     function deploy() external returns (address) {

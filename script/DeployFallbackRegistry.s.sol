@@ -9,7 +9,8 @@ contract DeployFallbackRegistry is BaseCreate2Script {
     address INITIAL_FALLBACK_REGISTRY_OWNER = address(0xC669B5F25F03be2ac0323037CB57f49eB543657a);
 
     function run() public {
-        runOnNetworks(this.deploy, vm.envString("NETWORKS", ","));
+        vm.createSelectFork("https://mainnet.base.org");
+        this.deploy();
     }
 
     function deploy() external returns (address) {

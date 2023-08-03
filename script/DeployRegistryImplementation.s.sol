@@ -4,12 +4,14 @@ pragma solidity ^0.8.17;
 import { BaseCreate2Script, console2 } from "create2-scripts/BaseCreate2Script.s.sol";
 import { RoyaltyRegistry } from "../contracts/RoyaltyRegistry.sol";
 import { DeployOverrideFactory } from "./DeployOverrideFactory.s.sol";
+import { Script, console2, StdChains } from "forge-std/Script.sol";
 
 contract DeployImplementations is BaseCreate2Script {
     address registryImplementation;
 
     function run() public {
-        runOnNetworks(this.deploy, vm.envString("NETWORKS", ","));
+        vm.createSelectFork("https://mainnet.base.org");
+        this.deploy();
     }
 
     function deploy() external returns (address) {

@@ -16,23 +16,24 @@ source .env
 
 # Mainnets
 deployments=(
-    "1,mainnet,$ETHERSCAN_API_KEY"
-    "137,polygon,$POLYGONSCAN_API_KEY"
-    "10,optimism,$OPSCAN_API_KEY"
-    "42161,arbitrum_one,$ARBISCAN_API_KEY"
-    "43114,avalanche,$SNOWTRACE_API_KEY"
-    "56,bnb_smart_chain,$BSCSCAN_API_KEY"
+    # "1,mainnet,$ETHERSCAN_API_KEY"
+    # "137,polygon,$POLYGONSCAN_API_KEY"
+    # "10,optimism,$OPSCAN_API_KEY"
+    # "42161,arbitrum_one,$ARBISCAN_API_KEY"
+    # "43114,avalanche,$SNOWTRACE_API_KEY"
+    # "56,bnb_smart_chain,$BSCSCAN_API_KEY"
+    "8453,base,$ETHERSCAN_API_KEY"
 )
 
 # Testnets
-deployments=(
-    "5,goerli,$ETHERSCAN_API_KEY"
-    "80001,polygon_mumbai,$POLYGONSCAN_API_KEY"
-    "420,optimism_goerli,$OPSCAN_API_KEY"
-    "421613,arbitrum_one_goerli,$ARBISCAN_API_KEY"
-    "43113,avalanche_fuji,$SNOWTRACE_API_KEY"
-    "97,bnb_smart_chain_testnet,$BSCSCAN_API_KEY"
-)
+# deployments=(
+#     "5,goerli,$ETHERSCAN_API_KEY"
+#     "80001,polygon_mumbai,$POLYGONSCAN_API_KEY"
+#     "420,optimism_goerli,$OPSCAN_API_KEY"
+#     "421613,arbitrum_one_goerli,$ARBISCAN_API_KEY"
+#     "43113,avalanche_fuji,$SNOWTRACE_API_KEY"
+#     "97,bnb_smart_chain_testnet,$BSCSCAN_API_KEY"
+# )
 
 for deployment in "${deployments[@]}"; do
     IFS=',' read -r chain_id name api_key <<< "$deployment"
