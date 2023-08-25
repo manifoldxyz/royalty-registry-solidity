@@ -34,6 +34,15 @@ contract RegistryTest is BaseOverrideTest {
         _testOverrideAllowed(makeAddr("owner"), tokenAddress);
     }
 
+    function testOverrideAllowed_Overloaded() public {
+        address tokenAddress = address(ownable);
+        ownable.transferOwnership(makeAddr("owner"));
+        vm.prank(registry.owner());
+        assertTrue(registry.overrideAllowed(tokenAddress, registry.owner()));
+        assertTrue(registry.overrideAllowed(tokenAddress, makeAddr("owner")));
+        assertFalse(registry.overrideAllowed(tokenAddress, makeAddr("not authed")));
+    }
+
     function _testOverrideAllowed(address authedCaller, address tokenAddress) internal {
         vm.prank(registry.owner());
         assertTrue(registry.overrideAllowed(tokenAddress));

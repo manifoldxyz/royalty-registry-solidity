@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 
 /// @author: manifold.xyz
 
-import "@openzeppelin/contracts/utils/introspection/ERC165.sol"; 
+import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/IAccessControlUpgradeable.sol";
@@ -49,7 +49,7 @@ contract RoyaltyRegistry is ERC165, OwnableUpgradeable, IRoyaltyRegistry {
     /**
      * @dev See {IERC165-supportsInterface}.
      */
-    function supportsInterface(bytes4 interfaceId) public view virtual override (ERC165, IERC165) returns (bool) {
+    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165, IERC165) returns (bool) {
         return interfaceId == type(IRoyaltyRegistry).interfaceId || super.supportsInterface(interfaceId);
     }
 
@@ -77,8 +77,7 @@ contract RoyaltyRegistry is ERC165, OwnableUpgradeable, IRoyaltyRegistry {
             "Invalid input"
         );
         require(overrideAllowed(tokenAddress), "Permission denied");
-        // look up existing override, if any
-        address existingOverride = _overrides[tokenAddress];
+
         // set new override and reverse-lookup
         _overrides[tokenAddress] = royaltyLookupAddress;
 
@@ -90,32 +89,43 @@ contract RoyaltyRegistry is ERC165, OwnableUpgradeable, IRoyaltyRegistry {
      * @dev See {IRegistry-overrideAllowed}.
      */
     function overrideAllowed(address tokenAddress) public view override returns (bool) {
-        if (owner() == _msgSender()) return true;
+        return _overrideAllowed(tokenAddress, _msgSender());
+    }
+
+    /**
+     * @dev See {IRegistry-overrideAllowed}.
+     */
+    function overrideAllowed(address tokenAddress, address caller) external view override returns (bool) {
+        return _overrideAllowed(tokenAddress, caller);
+    }
+
+    function _overrideAllowed(address tokenAddress, address caller) internal view returns (bool) {
+        if (owner() == caller) return true;
 
         if (
             ERC165Checker.supportsInterface(tokenAddress, type(IAdminControl).interfaceId)
-                && IAdminControl(tokenAddress).isAdmin(_msgSender())
+                && IAdminControl(tokenAddress).isAdmin(caller)
         ) {
             return true;
         }
 
         try OwnableUpgradeable(tokenAddress).owner() returns (address owner) {
-            if (owner == _msgSender()) return true;
+            if (owner == caller) return true;
 
             if (owner.isContract()) {
                 try OwnableUpgradeable(owner).owner() returns (address passThroughOwner) {
-                    if (passThroughOwner == _msgSender()) return true;
+                    if (passThroughOwner == caller) return true;
                 } catch { }
             }
         } catch { }
 
-        try IAccessControlUpgradeable(tokenAddress).hasRole(0x00, _msgSender()) returns (bool hasRole) {
+        try IAccessControlUpgradeable(tokenAddress).hasRole(0x00, caller) returns (bool hasRole) {
             if (hasRole) return true;
         } catch { }
 
         // Nifty Gateway overrides
         try INiftyBuilderInstance(tokenAddress).niftyRegistryContract() returns (address niftyRegistry) {
-            try INiftyRegistry(niftyRegistry).isValidNiftySender(_msgSender()) returns (bool valid) {
+            try INiftyRegistry(niftyRegistry).isValidNiftySender(caller) returns (bool valid) {
                 return valid;
             } catch { }
         } catch { }
@@ -125,21 +135,21 @@ contract RoyaltyRegistry is ERC165, OwnableUpgradeable, IRoyaltyRegistry {
 
         // Foundation overrides
         try IFoundationTreasuryNode(tokenAddress).getFoundationTreasury() returns (address payable foundationTreasury) {
-            try IFoundationTreasury(foundationTreasury).isAdmin(_msgSender()) returns (bool isAdmin) {
+            try IFoundationTreasury(foundationTreasury).isAdmin(caller) returns (bool isAdmin) {
                 return isAdmin;
             } catch { }
         } catch { }
 
         // DIGITALAX overrides
         try IDigitalax(tokenAddress).accessControls() returns (address externalAccessControls) {
-            try IDigitalaxAccessControls(externalAccessControls).hasAdminRole(_msgSender()) returns (bool hasRole) {
+            try IDigitalaxAccessControls(externalAccessControls).hasAdminRole(caller) returns (bool hasRole) {
                 if (hasRole) return true;
             } catch { }
         } catch { }
 
         // Art Blocks overrides
         try IArtBlocks(tokenAddress).admin() returns (address admin) {
-            if (admin == _msgSender()) return true;
+            if (admin == caller) return true;
         } catch { }
 
         // Superrare overrides
@@ -151,7 +161,7 @@ contract RoyaltyRegistry is ERC165, OwnableUpgradeable, IRoyaltyRegistry {
         return false;
     }
 
-    function _msgSender() internal view virtual override (ContextUpgradeable) returns (address) {
+    function _msgSender() internal view virtual override(ContextUpgradeable) returns (address) {
         if (msg.sender == OVERRIDE_FACTORY) {
             address relayedSender;
             ///@solidity memory-safe-assembly

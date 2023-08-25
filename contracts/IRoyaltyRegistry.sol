@@ -34,4 +34,11 @@ interface IRoyaltyRegistry is IERC165 {
      * @param tokenAddress    - The token address you are looking up the royalty for
      */
     function overrideAllowed(address tokenAddress) external view returns (bool);
+
+    /**
+     * Whether or not an arbitrary caller can override the royalty address for the given token address
+     *
+     * @param tokenAddress    - The token address you are looking up the royalty for
+     */
+    function overrideAllowed(address tokenAddress, address caller) external view returns (bool);
 }
