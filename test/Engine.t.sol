@@ -55,6 +55,8 @@ contract EngineTest is BaseOverrideTest {
     int16 private constant ROYALTY_SPLITTER = 10;
     int16 private constant FALLBACK = type(int16).max;
 
+    string private constant ALCHEMY_URL = 'https://eth-mainnet.g.alchemy.com/v2/<key_here>';
+
     function testInitialize() public {
         engine = new RoyaltyEngineV1(address(fallbackRegistry));
         engine.initialize(address(this), address(registry));
@@ -209,6 +211,28 @@ contract EngineTest is BaseOverrideTest {
         testSpecAndCache(true, address(manifold), MANIFOLD);
         manifold = new Manifold(true);
         testSpecAndCache(true, address(manifold), MANIFOLD);
+    }
+
+    function testGetRoyalty_ACK() public {
+        vm.createSelectFork(ALCHEMY_URL);
+
+        // Make instance of ACK contract and ask it for royalties directly...
+        IManifold ackContract = IManifold(0xD90829C6C6012E4DdE506BD95d7499A04b9A56de);
+        
+        (address payable[] memory recipients, uint256[] memory amounts) = ackContract.getRoyalties(1);
+        assertEq(recipients.length, 1);
+        assertEq(recipients[0], payable(0x27bdBe7DE9d175919a1771C7Da7A3490cEA3Ec79));
+        assertEq(amounts.length, 1);
+        assertEq(amounts[0], 700);
+
+        // Now, ask the engine for royalties...
+        RoyaltyEngineV1 deployedEngine = RoyaltyEngineV1(0x0385603ab55642cb4Dd5De3aE9e306809991804f);
+
+        (recipients, amounts) = deployedEngine.getRoyalty(address(ackContract), 1, 10000);
+        assertEq(recipients.length, 1);
+        assertEq(recipients[0], payable(0x27bdBe7DE9d175919a1771C7Da7A3490cEA3Ec79));
+        assertEq(amounts.length, 1);
+        assertEq(amounts[0], 700);
     }
 
     // test rarible v1 and 2
