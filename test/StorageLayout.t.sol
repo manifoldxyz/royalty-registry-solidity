@@ -2,7 +2,6 @@
 pragma solidity ^0.8.17;
 
 import { Test } from "forge-std/Test.sol";
-import {console} from "forge-std/console.sol";
 
 contract StorageLayoutTest is Test {
     string[] watchedContracts;
@@ -66,9 +65,6 @@ contract StorageLayoutTest is Test {
         } else {
             content = vm.readFile(string.concat("storage_layouts/", file, ".json"));
         }
-        console.logString(file);
-        console.logBool(latest);
-        console.logBytes(bytes(content));
         bytes memory contentBytes = vm.parseJson(content);
         LayoutFile memory latestLayout = abi.decode(contentBytes, (LayoutFile));
         return latestLayout;
