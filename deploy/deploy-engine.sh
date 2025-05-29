@@ -41,7 +41,7 @@ for deployment in "${deployments[@]}"; do
 
     echo "[$chain_id] ========= Deploying Engine implementation ========="
 
-    output=$(forge script script/DeployEngineImplementation.s.sol "$@")
+    output=$(forge script script/DeployEngineV1Implementation.s.sol "$@")
     echo "$output"
 
     engine_impl=$(grep -m 1 "Deployed Engine implementation at" <<< "$output" | awk '{print $NF}')

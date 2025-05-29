@@ -14,6 +14,6 @@ cat watched_contracts.txt | while read -r LINE; do
       continue
     fi
     # Interpolate the string in a command
-    forge inspect $i storage | jq '.["storage"] |= map(. + {_contract: .contract, _type: .type} | del(.contract, .type))' | jq '{_storage: .storage}'  > storage_layouts/"$i"_latest.json
+    forge inspect $i storage --json | jq '.["storage"] |= map(. + {_contract: .contract, _type: .type} | del(.contract, .type))' | jq '{_storage: .storage}'  > storage_layouts/"$i"_latest.json
   done
 done

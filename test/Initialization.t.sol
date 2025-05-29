@@ -13,13 +13,8 @@ interface ITimelockController {
         uint256 delay
     ) external;
 
-    function execute(
-        address target,
-        uint256 value,
-        bytes calldata payload,
-        bytes32 predecessor,
-        bytes32 salt
-    ) external;
+    function execute(address target, uint256 value, bytes calldata payload, bytes32 predecessor, bytes32 salt)
+        external;
 }
 
 interface IOwnable {
@@ -35,23 +30,21 @@ interface IRoyaltyEngine is IOwnable {
 }
 
 contract InitializationTest is Test {
-    
     address gnosisSafe = 0x520f09e18895ACd6A9E75dE01355b5691Bf3D92B;
     address timelockController = 0xe3A6CD067a1193b903143C36dA00557c9d95C41e;
     address proxyAdmin = 0x0779702742c1397700e452A0976EfEF18D874764;
-    
+
     address royaltyOverrideFactory = 0x103247393F448203ed7Ff7515E262316812637B4;
     address royaltyFallbackRegistry = 0xB78fC2052717C7AE061a14dB1fB2038d5AC34D29;
 
     address royaltyRegistryImpl = 0xd389340d95c851655dD99c5781be1c5e39d30B31;
     address royaltyEngineImpl = 0xD388d812c1cE2CE7C46D797684BA912De65CD414;
-    
+
     address royaltyRegistry = 0x3D1151dc590ebF5C04501a7d4E1f8921546774eA;
     address royaltyEngine = 0xEF770dFb6D5620977213f55f99bfd781D04BBE15;
 
-
     function setUp() public {
-        vm.createSelectFork("https://mainnet.base.org");
+        vm.createSelectFork("https://mainnet.base.org", 2200000);
     }
 
     modifier withGnosisSafe() {
@@ -97,25 +90,11 @@ contract InitializationTest is Test {
         _timelockExecute(data);
     }
 
-
     function _timelockSchedule(bytes memory data) private {
-        ITimelockController(timelockController).schedule(
-            proxyAdmin,
-            0,
-            data,
-            bytes32(0),
-            bytes32(0),
-            86400
-        );
+        ITimelockController(timelockController).schedule(proxyAdmin, 0, data, bytes32(0), bytes32(0), 86400);
     }
 
     function _timelockExecute(bytes memory data) private {
-        ITimelockController(timelockController).execute(
-            proxyAdmin,
-            0,
-            data,
-            bytes32(0),
-            bytes32(0)
-        );
+        ITimelockController(timelockController).execute(proxyAdmin, 0, data, bytes32(0), bytes32(0));
     }
 }
